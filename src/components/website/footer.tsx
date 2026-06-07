@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Mail, MapPin, Phone, Share2 } from "lucide-react";
+import { SocialIcon, type SocialPlatform } from "@/components/website/social-icons";
 import { getLucideIcon } from "@/lib/icons";
 import { SiteLogo } from "@/components/website/site-logo";
 import { NewsletterForm } from "@/components/website/newsletter-form";
@@ -21,12 +22,14 @@ export function Footer({
 
   const trustBadges = parseTrustBadges(site.footer_trust_badges);
 
-  const socials = [
-    { label: "LinkedIn", url: site.social_linkedin },
-    { label: "Twitter", url: site.social_twitter },
-    { label: "Facebook", url: site.social_facebook },
-    { label: "YouTube", url: site.social_youtube },
-  ].filter((s) => s.url);
+  const socials = (
+    [
+      { platform: "LinkedIn" as const, url: site.social_linkedin },
+      { platform: "Twitter" as const, url: site.social_twitter },
+      { platform: "Facebook" as const, url: site.social_facebook },
+      { platform: "YouTube" as const, url: site.social_youtube },
+    ] satisfies { platform: SocialPlatform; url: string }[]
+  ).filter((s) => s.url);
 
   return (
     <footer className="relative overflow-hidden bg-[#050C36] text-white">
@@ -45,16 +48,16 @@ export function Footer({
             </p>
             {socials.length > 0 && (
               <div className="mt-6 flex gap-3">
-                {socials.map(({ label, url }) => (
+                {socials.map(({ platform, url }) => (
                   <a
-                    key={label}
+                    key={platform}
                     href={url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    aria-label={label}
-                    className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/10 transition-colors hover:bg-[#00C2FF]/30"
+                    aria-label={platform}
+                    className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/10 text-white transition-colors hover:border-[#00C2FF]/40 hover:bg-[#00C2FF]/20"
                   >
-                    <Share2 className="h-4 w-4" />
+                    <SocialIcon platform={platform} className="h-4 w-4" />
                   </a>
                 ))}
               </div>

@@ -153,7 +153,7 @@ export function Header({
             </ul>
           </nav>
 
-          <div className="hidden items-center gap-3 lg:flex">
+          <div className="hidden shrink-0 items-center gap-2.5 lg:flex">
             <button
               type="button"
               aria-label="Search"
@@ -164,7 +164,7 @@ export function Header({
             {site.watch_demo_text && (
               <Link
                 href={site.watch_demo_link || "/contact"}
-                className="hidden text-sm font-semibold text-[#001A41] transition hover:text-[#2563EB] lg:inline-flex"
+                className="hidden shrink-0 whitespace-nowrap text-sm font-semibold text-[#001A41] transition hover:text-[#2563EB] lg:inline-flex"
               >
                 {site.watch_demo_text}
               </Link>
@@ -172,7 +172,7 @@ export function Header({
             <DiscoverButton
               href={site.request_demo_link || "/contact"}
               label={site.request_demo_text || "Request Demo"}
-              className="hidden xl:inline-flex"
+              className="hidden shrink-0 lg:inline-flex"
             />
             <button
               type="button"

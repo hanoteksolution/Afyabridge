@@ -1,15 +1,18 @@
 import { MapPin, Mail } from "lucide-react";
+import { SocialIcon, type SocialPlatform } from "@/components/website/social-icons";
 import { parseSiteSettings } from "@/lib/site-settings";
 
 export function TopBar({ settings = {} }: { settings?: Record<string, unknown> }) {
   const site = parseSiteSettings(settings);
 
-  const socials = [
-    { label: "Facebook", url: site.social_facebook },
-    { label: "Twitter", url: site.social_twitter },
-    { label: "LinkedIn", url: site.social_linkedin },
-    { label: "YouTube", url: site.social_youtube },
-  ].filter((s) => s.url);
+  const socials = (
+    [
+      { platform: "Facebook" as const, url: site.social_facebook },
+      { platform: "Twitter" as const, url: site.social_twitter },
+      { platform: "LinkedIn" as const, url: site.social_linkedin },
+      { platform: "YouTube" as const, url: site.social_youtube },
+    ] satisfies { platform: SocialPlatform; url: string }[]
+  ).filter((s) => s.url);
 
   return (
     <div className="bg-[#001A41] text-white">
@@ -28,16 +31,16 @@ export function TopBar({ settings = {} }: { settings?: Record<string, unknown> }
           <div className="flex items-center gap-3">
             <span className="text-white/70">Follow Us On :</span>
             <div className="flex items-center gap-2">
-              {socials.map(({ label, url }) => (
+              {socials.map(({ platform, url }) => (
                 <a
-                  key={label}
+                  key={platform}
                   href={url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label={label}
-                  className="flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-white/10 text-[10px] font-semibold transition hover:bg-[#2563EB]"
+                  aria-label={platform}
+                  className="flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white transition hover:border-[#2563EB] hover:bg-[#2563EB]"
                 >
-                  {label[0]}
+                  <SocialIcon platform={platform} className="h-3.5 w-3.5" />
                 </a>
               ))}
             </div>

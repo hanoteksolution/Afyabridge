@@ -15,7 +15,7 @@ export function DiscoverButton({
     <Link
       href={href}
       className={cn(
-        "group inline-flex items-center gap-3 rounded-full bg-[#2563EB] py-2 pl-6 pr-2 text-sm font-semibold text-white shadow-lg shadow-blue-900/25 transition hover:bg-[#1d4ed8]",
+        "group inline-flex shrink-0 items-center gap-2.5 whitespace-nowrap rounded-full bg-[#2563EB] py-2 pl-5 pr-2 text-sm font-semibold text-white shadow-lg shadow-blue-900/25 transition hover:bg-[#1d4ed8]",
         className
       )}
     >

@@ -68,7 +68,7 @@ export function SectionEditor({ section: initial }: { section: FullSection }) {
           <Label>Subtitle</Label>
           <Textarea value={section.subtitle || ""} onChange={(e) => setField("subtitle", e.target.value)} className="mt-1.5" rows={2} />
         </div>
-        {(section.type === "CTA" || section.type === "HERO") && (
+        {(section.type === "CTA" || section.type === "HERO" || section.type === "PLATFORM_MODULES") && (
           <>
             <div>
               <Label>Primary Button Text</Label>
@@ -218,10 +218,14 @@ function IndustriesEditor({ section, onUpdate }: { section: FullSection; onUpdat
           <Textarea placeholder="Description" defaultValue={item.description || ""} rows={2} onBlur={(e) => saveIndustry(section.id, item.id, { name: item.name, slug: item.slug, description: e.target.value, icon: parsed.icon, benefits: parsed.items, statValue: parsed.stat?.v, statLabel: parsed.stat?.l })} />
           <Textarea placeholder="Benefits (one per line)" defaultValue={parsed.items.join("\n")} rows={3} onBlur={(e) => saveIndustry(section.id, item.id, { name: item.name, slug: item.slug, description: item.description || "", icon: parsed.icon, benefits: e.target.value.split("\n").map((s) => s.trim()).filter(Boolean), statValue: parsed.stat?.v, statLabel: parsed.stat?.l })} />
           <div className="grid gap-2 sm:grid-cols-2">
-            <Input placeholder="Stat value" defaultValue={parsed.stat?.v || ""} onBlur={(e) => saveIndustry(section.id, item.id, { name: item.name, slug: item.slug, description: item.description || "", icon: parsed.icon, benefits: parsed.items, statValue: e.target.value, statLabel: parsed.stat?.l })} />
-            <Input placeholder="Stat label" defaultValue={parsed.stat?.l || ""} onBlur={(e) => saveIndustry(section.id, item.id, { name: item.name, slug: item.slug, description: item.description || "", icon: parsed.icon, benefits: parsed.items, statValue: parsed.stat?.v, statLabel: e.target.value })} />
+            <Input placeholder="Stat value" defaultValue={parsed.stat?.v || ""} onBlur={(e) => saveIndustry(section.id, item.id, { name: item.name, slug: item.slug, description: item.description || "", icon: parsed.icon, benefits: parsed.items, statValue: e.target.value, statLabel: parsed.stat?.l, ctaText: item.ctaText || undefined, ctaLink: item.ctaLink || undefined })} />
+            <Input placeholder="Stat label" defaultValue={parsed.stat?.l || ""} onBlur={(e) => saveIndustry(section.id, item.id, { name: item.name, slug: item.slug, description: item.description || "", icon: parsed.icon, benefits: parsed.items, statValue: parsed.stat?.v, statLabel: e.target.value, ctaText: item.ctaText || undefined, ctaLink: item.ctaLink || undefined })} />
           </div>
-          <ImageUploadField label="Image" value={item.image || ""} onChange={(url) => { saveIndustry(section.id, item.id, { name: item.name, slug: item.slug, description: item.description || "", image: url, icon: parsed.icon, benefits: parsed.items, statValue: parsed.stat?.v, statLabel: parsed.stat?.l }); onUpdate({ ...section, industries: items.map((i) => i.id === item.id ? { ...i, image: url } : i) }); }} />
+          <div className="grid gap-2 sm:grid-cols-2">
+            <Input placeholder="CTA button text" defaultValue={item.ctaText || ""} onBlur={(e) => saveIndustry(section.id, item.id, { name: item.name, slug: item.slug, description: item.description || "", icon: parsed.icon, benefits: parsed.items, statValue: parsed.stat?.v, statLabel: parsed.stat?.l, ctaText: e.target.value, ctaLink: item.ctaLink || undefined })} />
+            <Input placeholder="CTA link" defaultValue={item.ctaLink || ""} onBlur={(e) => saveIndustry(section.id, item.id, { name: item.name, slug: item.slug, description: item.description || "", icon: parsed.icon, benefits: parsed.items, statValue: parsed.stat?.v, statLabel: parsed.stat?.l, ctaText: item.ctaText || undefined, ctaLink: e.target.value })} />
+          </div>
+          <ImageUploadField label="Image" value={item.image || ""} onChange={(url) => { saveIndustry(section.id, item.id, { name: item.name, slug: item.slug, description: item.description || "", image: url, icon: parsed.icon, benefits: parsed.items, statValue: parsed.stat?.v, statLabel: parsed.stat?.l, ctaText: item.ctaText || undefined, ctaLink: item.ctaLink || undefined }); onUpdate({ ...section, industries: items.map((i) => i.id === item.id ? { ...i, image: url } : i) }); }} />
           <Button variant="ghost" size="sm" className="text-red-500" onClick={async () => { await deleteIndustry(item.id); onUpdate({ ...section, industries: items.filter((i) => i.id !== item.id) }); }}><Trash2 className="h-4 w-4 mr-1" /> Delete</Button>
         </div>
         );
@@ -274,7 +278,10 @@ function StepsEditor({ section, onUpdate }: { section: FullSection; onUpdate: (s
     }}>
       {items.map((item) => (
         <div key={item.id} className="rounded-lg border bg-white p-3 space-y-2">
-          <Input placeholder="Title" defaultValue={item.title} onBlur={(e) => saveApproachStep(section.id, item.id, { title: e.target.value, description: item.description || "", icon: item.icon || undefined })} />
+          <div className="grid gap-2 sm:grid-cols-2">
+            <Input placeholder="Title" defaultValue={item.title} onBlur={(e) => saveApproachStep(section.id, item.id, { title: e.target.value, description: item.description || "", icon: item.icon || undefined })} />
+            <Input placeholder="Icon (Lucide)" defaultValue={item.icon || ""} onBlur={(e) => saveApproachStep(section.id, item.id, { title: item.title, description: item.description || "", icon: e.target.value })} />
+          </div>
           <Textarea placeholder="Description" defaultValue={item.description || ""} rows={2} onBlur={(e) => saveApproachStep(section.id, item.id, { title: item.title, description: e.target.value, icon: item.icon || undefined })} />
           <Button variant="ghost" size="sm" className="text-red-500" onClick={async () => { await deleteApproachStep(item.id); onUpdate({ ...section, approachSteps: items.filter((i) => i.id !== item.id) }); }}><Trash2 className="h-4 w-4 mr-1" /> Delete</Button>
         </div>

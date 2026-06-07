@@ -3,7 +3,7 @@ import {
   Check, CheckCircle2, ChevronDown, Circle, ClipboardList, Clock, CreditCard,
   FileCheck, FileText, FlaskConical, Gauge, Globe, GraduationCap, Handshake,
   Headphones, Heart, HeartPulse, LayoutGrid, Lightbulb, Lock, Mail, MapPin,
-  Microscope, Network, Package, Phone, Pill, PlayCircle, Plus, Quote, Rocket,
+  Microscope, Monitor, Network, Package, Phone, Pill, PlayCircle, Plus, Quote, Rocket,
   Search, Send, Settings, Shield, ShieldCheck, Sparkles, Star, Stethoscope,
   TrendingUp, UserPlus, Users, Workflow, Zap, type LucideIcon,
 } from "lucide-react";
@@ -13,7 +13,7 @@ const iconMap: Record<string, LucideIcon> = {
   Check, CheckCircle2, ChevronDown, Circle, ClipboardList, Clock, CreditCard,
   FileCheck, FileText, FlaskConical, Gauge, Globe, GraduationCap, Handshake,
   Headphones, HeadphonesIcon: Headphones, Heart, HeartPulse, LayoutGrid,
-  Lightbulb, Lock, Mail, MapPin, Microscope, Network, Package, Phone, Pill,
+  Lightbulb, Lock, Mail, MapPin, Microscope, Monitor, Network, Package, Phone, Pill,
   PlayCircle, Plus, Quote, Rocket, Search, Send, Settings, Shield, ShieldCheck,
   Sparkles, Star, Stethoscope, TrendingUp, UserPlus, Users, Workflow, Zap,
 };

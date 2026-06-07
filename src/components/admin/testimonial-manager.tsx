@@ -51,14 +51,24 @@ export function TestimonialManager({ testimonials: initial }: { testimonials: Te
           </div>
           <div><Label>Review *</Label><Textarea value={form.review} onChange={(e) => setForm({ ...form, review: e.target.value })} className="mt-1.5" rows={3} /></div>
           <div><Label>Result badge (e.g. -40% wait time)</Label><Input value={form.result} onChange={(e) => setForm({ ...form, result: e.target.value })} className="mt-1.5" /></div>
-          <ImageUploadField label="Photo" value={form.photo} onChange={(url) => setForm({ ...form, photo: url })} />
+          <ImageUploadField
+            label="Card image (shown at top of testimonial card)"
+            value={form.photo}
+            onChange={(url) => setForm({ ...form, photo: url })}
+          />
           <div className="flex items-center gap-2"><Switch checked={form.isVisible} onCheckedChange={(v) => setForm({ ...form, isVisible: v })} /><span className="text-sm">Visible</span></div>
           <div className="flex gap-2"><Button onClick={handleSave}>Save</Button><Button variant="outline" onClick={() => setEditing(null)}>Cancel</Button></div>
         </div>
       )}
       {items.map((t) => (
-        <div key={t.id} className="flex justify-between rounded-xl border bg-white p-4">
-          <div>
+        <div key={t.id} className="flex justify-between gap-4 rounded-xl border bg-white p-4">
+          {t.photo && (
+            <div className="relative h-16 w-24 shrink-0 overflow-hidden rounded-lg">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={t.photo} alt={t.name} className="h-full w-full object-cover" />
+            </div>
+          )}
+          <div className="min-w-0 flex-1">
             <p className="font-medium">{t.name} — {t.hospital}</p>
             <p className="text-sm text-slate-500 line-clamp-2">{t.review}</p>
           </div>

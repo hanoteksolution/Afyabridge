@@ -5,6 +5,7 @@ import { WhySection } from "@/components/sections/why-section";
 import { WhoWeServeSection } from "@/components/sections/who-we-serve-section";
 import { PlatformModulesSection } from "@/components/sections/platform-modules-section";
 import { ApproachSection } from "@/components/sections/approach-section";
+import { ConsultingServicesSection } from "@/components/sections/consulting-services-section";
 import { MissionVisionSection } from "@/components/sections/mission-vision-section";
 import { TestimonialsSection } from "@/components/sections/testimonials-section";
 import { CaseStudiesSection } from "@/components/sections/case-studies-section";
@@ -37,10 +38,17 @@ export function SectionRenderer({
   settings = {},
 }: SectionRendererProps) {
   const hasHero = sections.some((s) => s.type === "HERO");
+  const whySection = sections.find((s) => s.type === "WHY_AFYA");
+  const whoServeSection = sections.find((s) => s.type === "WHO_WE_SERVE");
+  const embedWhoServeInWhy = Boolean(whySection && whoServeSection);
 
   return (
     <>
       {sections.map((section) => {
+        if (embedWhoServeInWhy && section.type === "WHO_WE_SERVE") {
+          return null;
+        }
+
         switch (section.type) {
           case "HERO":
             return <HeroSection key={section.id} section={section} />;
@@ -53,7 +61,13 @@ export function SectionRenderer({
               />
             );
           case "WHY_AFYA":
-            return <WhySection key={section.id} section={section} />;
+            return (
+              <WhySection
+                key={section.id}
+                section={section}
+                whoServeSection={embedWhoServeInWhy ? whoServeSection : undefined}
+              />
+            );
           case "WHO_WE_SERVE":
             return <WhoWeServeSection key={section.id} section={section} />;
           case "PLATFORM_MODULES":
@@ -90,6 +104,9 @@ export function SectionRenderer({
             const variant = (section.content as { variant?: string } | null)?.variant;
             if (variant === "FAQ") {
               return <FaqListSection key={section.id} section={section} faqs={faqs} />;
+            }
+            if (variant === "CONSULTING") {
+              return <ConsultingServicesSection key={section.id} section={section} />;
             }
             return null;
           }

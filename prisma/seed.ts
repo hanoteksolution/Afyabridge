@@ -314,32 +314,142 @@ async function main() {
     await prisma.section.update({
       where: { id: wwsSec.id },
       data: {
+        title: "Solutions for Every Healthcare Provider",
+        subtitle: "From single clinics to national health networks — one intelligent platform.",
+        content: { eyebrow: "Who We Serve" },
+      },
+    });
+    await prisma.industry.deleteMany({ where: { sectionId: wwsSec.id } });
+    await prisma.industry.createMany({
+      data: [
+        { sectionId: wwsSec.id, name: "Hospitals", slug: "hospitals", description: "Comprehensive hospital management from admission to discharge with full departmental integration.", benefits: { icon: "Building2", items: [] }, order: 0 },
+        { sectionId: wwsSec.id, name: "Clinics", slug: "clinics", description: "Purpose-built for outpatient clinics managing high patient volumes with limited staff.", benefits: { icon: "Stethoscope", items: [] }, order: 1 },
+        { sectionId: wwsSec.id, name: "Health Centers", slug: "health-centers", description: "Community health centers delivering primary care with efficient digital workflows.", benefits: { icon: "HeartPulse", items: [] }, order: 2 },
+        { sectionId: wwsSec.id, name: "Growing Practices", slug: "growing-practices", description: "Scale without outgrowing your software as your practice expands.", benefits: { icon: "TrendingUp", items: [] }, order: 3 },
+        { sectionId: wwsSec.id, name: "Healthcare Networks", slug: "healthcare-networks", description: "A unified platform for networks operating across multiple facilities and regions.", benefits: { icon: "Network", items: [] }, order: 4 },
+        { sectionId: wwsSec.id, name: "NGOs & Donors", slug: "ngos-donors", description: "Run community health programs with reach, accountability, and donor-ready reporting.", benefits: { icon: "Handshake", items: [] }, order: 5 },
+      ],
+    });
+  }
+
+  const platformSec = await prisma.section.findFirst({ where: { pageId: homePage.id, type: "PLATFORM_MODULES" } });
+  if (platformSec) {
+    await prisma.section.update({
+      where: { id: platformSec.id },
+      data: {
+        title: "Everything You Need in One Platform",
+        subtitle: "Integrated modules that work together seamlessly.",
+        buttonText: "See All Modules",
+        buttonLink: "/platform",
+        content: { eyebrow: "Powerful Modules" },
+      },
+    });
+    await prisma.serviceModule.deleteMany({ where: { sectionId: platformSec.id } });
+    await prisma.serviceModule.createMany({
+      data: [
+        { sectionId: platformSec.id, name: "Patient Management", slug: "patient-management", description: "Complete patient records & history", icon: "Users", order: 0 },
+        { sectionId: platformSec.id, name: "Appointments & Scheduling", slug: "appointments", description: "Smart scheduling with reminders", icon: "Calendar", order: 1 },
+        { sectionId: platformSec.id, name: "Clinical & EMR", slug: "clinical-emr", description: "Electronic medical records & clinical notes", icon: "FileText", order: 2 },
+        { sectionId: platformSec.id, name: "Billing & Payments", slug: "billing", description: "Automated invoicing and payments", icon: "CreditCard", order: 3 },
+        { sectionId: platformSec.id, name: "Pharmacy Management", slug: "pharmacy", description: "Prescription and inventory management", icon: "Pill", order: 4 },
+        { sectionId: platformSec.id, name: "Laboratory Management", slug: "laboratory", description: "Lab orders and results management", icon: "FlaskConical", order: 5 },
+        { sectionId: platformSec.id, name: "Inventory Management", slug: "inventory", description: "Track supplies across departments", icon: "Package", order: 6 },
+        { sectionId: platformSec.id, name: "Analytics & Reporting", slug: "analytics", description: "Real-time analytics and KPIs", icon: "BarChart3", order: 7 },
+      ],
+    });
+  }
+
+  let consultingSec = await prisma.section.findFirst({
+    where: { pageId: homePage.id, type: "CUSTOM", content: { path: ["variant"], equals: "CONSULTING" } },
+  });
+  if (!consultingSec) {
+    consultingSec = await prisma.section.create({
+      data: {
+        pageId: homePage.id,
+        type: "CUSTOM",
+        title: "We Help You Improve Operations and Deliver Better Care",
+        order: 4,
+        isVisible: true,
         content: {
-          consultingEyebrow: "Expert Consulting",
-          consultingTitle: "Consulting Services That Drive Results",
+          variant: "CONSULTING",
+          consultingEyebrow: "Expert Consulting Services",
+          consultingTitle: "We Help You Improve Operations and Deliver Better Care",
           consultingServices: [
-            { title: "Process Optimization", description: "Streamline workflows and reduce bottlenecks.", icon: "Settings" },
-            { title: "Digital Transformation", description: "Guide your facility through digitization.", icon: "TrendingUp" },
-            { title: "Change Management", description: "Ensure staff adoption with training.", icon: "Users" },
-            { title: "Performance Analytics", description: "Measure outcomes and improve operations.", icon: "BarChart3" },
+            { title: "Process Optimization", description: "Analyze current workflows and redesign them for maximum efficiency and patient throughput.", icon: "Settings" },
+            { title: "Digital Transformation", description: "Digitize paper-based processes and integrate systems for seamless data flow.", icon: "Monitor" },
+            { title: "Training & Capacity Building", description: "Hands-on training programs that ensure your team adopts and masters the platform.", icon: "GraduationCap" },
+            { title: "Change Management", description: "Guide your team through organizational change with proven adoption strategies.", icon: "Users" },
+          ],
+        },
+      },
+    });
+  } else {
+    await prisma.section.update({
+      where: { id: consultingSec.id },
+      data: {
+        title: "We Help You Improve Operations and Deliver Better Care",
+        content: {
+          variant: "CONSULTING",
+          consultingEyebrow: "Expert Consulting Services",
+          consultingTitle: "We Help You Improve Operations and Deliver Better Care",
+          consultingServices: [
+            { title: "Process Optimization", description: "Analyze current workflows and redesign them for maximum efficiency and patient throughput.", icon: "Settings" },
+            { title: "Digital Transformation", description: "Digitize paper-based processes and integrate systems for seamless data flow.", icon: "Monitor" },
+            { title: "Training & Capacity Building", description: "Hands-on training programs that ensure your team adopts and masters the platform.", icon: "GraduationCap" },
+            { title: "Change Management", description: "Guide your team through organizational change with proven adoption strategies.", icon: "Users" },
           ],
         },
       },
     });
   }
 
-  if (wwsSec) {
-    await prisma.industry.deleteMany({ where: { sectionId: wwsSec.id } });
-    await prisma.industry.createMany({
+  const approachSec = await prisma.section.findFirst({ where: { pageId: homePage.id, type: "OUR_APPROACH" } });
+  if (approachSec) {
+    await prisma.section.update({
+      where: { id: approachSec.id },
+      data: {
+        title: "Our Implementation Process",
+        subtitle: "A structured path from assessment to go-live and beyond.",
+        content: { eyebrow: "Proven Implementation" },
+      },
+    });
+    await prisma.approachStep.deleteMany({ where: { sectionId: approachSec.id } });
+    await prisma.approachStep.createMany({
       data: [
-        { sectionId: wwsSec.id, name: "Clinics", slug: "clinics", description: "Purpose-built for outpatient clinics managing high patient volumes with limited staff.", benefits: ["Fast patient registration", "Queue management", "Integrated billing"], order: 0 },
-        { sectionId: wwsSec.id, name: "Hospitals", slug: "hospitals", description: "Comprehensive hospital management from admission to discharge with full departmental integration.", benefits: ["Ward & bed management", "Lab & radiology", "Multi-department workflows"], order: 1 },
-        { sectionId: wwsSec.id, name: "Laboratories", slug: "laboratories", description: "End-to-end diagnostics workflows from sample collection to verified, delivered results.", benefits: ["Sample tracking", "Analyzer integration", "Instant result delivery"], order: 2 },
-        { sectionId: wwsSec.id, name: "Pharmacies", slug: "pharmacies", description: "Smart dispensing, stock control, and drug interaction alerts that keep shelves accurate.", benefits: ["E-prescriptions", "Expiry & reorder alerts", "Insurance dispensing"], order: 3 },
-        { sectionId: wwsSec.id, name: "Health Networks", slug: "health-networks", description: "A unified platform for networks operating across multiple facilities and regions.", benefits: ["Centralized reporting", "Network-wide standards", "Shared patient records"], order: 4 },
-        { sectionId: wwsSec.id, name: "NGOs & Programs", slug: "ngos-programs", description: "Run community health programs with reach, accountability, and donor-ready reporting.", benefits: ["Program dashboards", "Offline-first capture", "Impact reporting"], order: 5 },
+        { sectionId: approachSec.id, title: "Assessment", description: "We understand your facility and goals.", icon: "Search", order: 0 },
+        { sectionId: approachSec.id, title: "Planning", description: "We design the right solution for you.", icon: "ClipboardList", order: 1 },
+        { sectionId: approachSec.id, title: "Implementation", description: "We set up and configure your system.", icon: "Settings", order: 2 },
+        { sectionId: approachSec.id, title: "Training", description: "We train your team hands-on.", icon: "GraduationCap", order: 3 },
+        { sectionId: approachSec.id, title: "Go-Live & Support", description: "We go live and stay with you.", icon: "Headphones", order: 4 },
       ],
     });
+  }
+
+  // Homepage section order: who we serve embeds inside WHY (after pillars); then modules → consulting → implementation
+  const homeOrder: { type: SectionType; order: number; variant?: string }[] = [
+    { type: "HERO", order: 0 },
+    { type: "TRUST_BAR", order: 1 },
+    { type: "WHY_AFYA", order: 2 },
+    { type: "WHO_WE_SERVE", order: 3 },
+    { type: "PLATFORM_MODULES", order: 4 },
+    { type: "CUSTOM", order: 5, variant: "CONSULTING" },
+    { type: "OUR_APPROACH", order: 6 },
+    { type: "MISSION_VISION", order: 7 },
+    { type: "TESTIMONIALS", order: 8 },
+    { type: "CASE_STUDIES", order: 9 },
+    { type: "BLOG", order: 10 },
+    { type: "CTA", order: 11 },
+    { type: "CONTACT", order: 12 },
+  ];
+  for (const item of homeOrder) {
+    const sec = item.variant
+      ? await prisma.section.findFirst({
+          where: { pageId: homePage.id, type: item.type, content: { path: ["variant"], equals: item.variant } },
+        })
+      : await prisma.section.findFirst({ where: { pageId: homePage.id, type: item.type } });
+    if (sec) {
+      await prisma.section.update({ where: { id: sec.id }, data: { order: item.order } });
+    }
   }
 
   const ctaSec = await prisma.section.findFirst({ where: { pageId: homePage.id, type: "CTA" } });

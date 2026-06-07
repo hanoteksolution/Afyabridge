@@ -239,15 +239,24 @@ export async function saveIndustry(
   }
 ) {
   await requireAuth();
-  const benefits =
-    data.icon || data.benefits?.length || data.statValue
-      ? ({
-          icon: data.icon,
-          items: data.benefits || [],
-          stat: data.statValue ? { v: data.statValue, l: data.statLabel || "" } : undefined,
-        } as Prisma.InputJsonValue)
-      : undefined;
-  await upsertChild("industry", sectionId, id, { ...data, benefits });
+
+  const benefitsJson: Record<string, unknown> = {
+    items: data.benefits || [],
+  };
+  if (data.icon) benefitsJson.icon = data.icon;
+  if (data.statValue) {
+    benefitsJson.stat = { v: data.statValue, l: data.statLabel || "" };
+  }
+
+  await upsertChild("industry", sectionId, id, {
+    name: data.name,
+    slug: data.slug,
+    description: data.description,
+    image: data.image,
+    ctaText: data.ctaText,
+    ctaLink: data.ctaLink,
+    benefits: benefitsJson as Prisma.InputJsonValue,
+  });
   revalidateSite();
   return { success: true };
 }
@@ -376,9 +385,19 @@ export async function saveTestimonial(
   data: { name: string; role?: string; hospital?: string; review: string; result?: string; rating?: number; photo?: string; isVisible?: boolean }
 ) {
   const session = await requireAuth();
+  const payload = {
+    name: data.name,
+    role: data.role || null,
+    hospital: data.hospital || null,
+    review: data.review,
+    result: data.result?.trim() || null,
+    rating: data.rating ?? 5,
+    photo: data.photo || null,
+    isVisible: data.isVisible ?? true,
+  };
   const t = id
-    ? await prisma.testimonial.update({ where: { id }, data })
-    : await prisma.testimonial.create({ data: { ...data, order: await prisma.testimonial.count() } });
+    ? await prisma.testimonial.update({ where: { id }, data: payload })
+    : await prisma.testimonial.create({ data: { ...payload, order: await prisma.testimonial.count() } });
   await logActivity({ userId: session.user.id, action: id ? "UPDATE" : "CREATE", entity: "Testimonial", entityId: t.id });
   revalidateSite();
   return { success: true, testimonial: t };

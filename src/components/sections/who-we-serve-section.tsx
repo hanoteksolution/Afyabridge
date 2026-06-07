@@ -4,30 +4,213 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, Check, Activity, Settings } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Activity, ArrowRight, CheckCircle2, Sparkles } from "lucide-react";
 import { getLucideIcon } from "@/lib/icons";
-import { parseContent, parseIndustryBenefits, sectionEyebrow, type WhoServeContent, type ConsultingService } from "@/lib/section-content";
+import { HEALTHCARE_IMAGES } from "@/lib/images";
+import { parseIndustryBenefits, sectionEyebrow } from "@/lib/section-content";
+import { SectionHeader } from "@/components/sections/section-header";
 import type { FullSection } from "@/lib/cms";
+
+const FALLBACK_IMAGES = [
+  HEALTHCARE_IMAGES.hospitalCorridor,
+  HEALTHCARE_IMAGES.consultation,
+  HEALTHCARE_IMAGES.community,
+  HEALTHCARE_IMAGES.dataAnalytics,
+  HEALTHCARE_IMAGES.medicalTeam,
+  HEALTHCARE_IMAGES.patientCare,
+];
+
+const CARD_STYLES = [
+  {
+    icon: "bg-sky-500/12 text-sky-600",
+    active: "border-sky-500/40 bg-sky-500/[0.06]",
+    accent: "from-sky-500 to-blue-600",
+    glow: "bg-sky-400/15",
+    ring: "ring-sky-500/25",
+    label: "text-sky-600",
+    bar: "from-sky-500 via-blue-500 to-blue-600",
+  },
+  {
+    icon: "bg-violet-500/12 text-violet-600",
+    active: "border-violet-500/40 bg-violet-500/[0.06]",
+    accent: "from-violet-500 to-purple-600",
+    glow: "bg-violet-400/15",
+    ring: "ring-violet-500/25",
+    label: "text-violet-600",
+    bar: "from-violet-500 via-purple-500 to-purple-600",
+  },
+  {
+    icon: "bg-emerald-500/12 text-emerald-600",
+    active: "border-emerald-500/40 bg-emerald-500/[0.06]",
+    accent: "from-emerald-500 to-teal-600",
+    glow: "bg-emerald-400/15",
+    ring: "ring-emerald-500/25",
+    label: "text-emerald-600",
+    bar: "from-emerald-500 via-teal-500 to-teal-600",
+  },
+  {
+    icon: "bg-orange-500/12 text-orange-600",
+    active: "border-orange-500/40 bg-orange-500/[0.06]",
+    accent: "from-orange-500 to-amber-500",
+    glow: "bg-orange-400/15",
+    ring: "ring-orange-500/25",
+    label: "text-orange-600",
+    bar: "from-orange-500 via-amber-500 to-amber-500",
+  },
+  {
+    icon: "bg-rose-500/12 text-rose-600",
+    active: "border-rose-500/40 bg-rose-500/[0.06]",
+    accent: "from-rose-500 to-pink-600",
+    glow: "bg-rose-400/15",
+    ring: "ring-rose-500/25",
+    label: "text-rose-600",
+    bar: "from-rose-500 via-pink-500 to-pink-600",
+  },
+  {
+    icon: "bg-teal-500/12 text-teal-600",
+    active: "border-teal-500/40 bg-teal-500/[0.06]",
+    accent: "from-teal-500 to-cyan-600",
+    glow: "bg-teal-400/15",
+    ring: "ring-teal-500/25",
+    label: "text-teal-600",
+    bar: "from-teal-500 via-cyan-500 to-cyan-600",
+  },
+];
+
+function ServeDetailPanel({
+  industry,
+  index,
+  style,
+}: {
+  industry: {
+    id: string;
+    name: string;
+    icon: string;
+    image?: string | null;
+    description: string;
+    benefits: string[];
+    stat?: { v: string; l: string };
+    ctaLink?: string | null;
+    ctaText?: string | null;
+  };
+  index: number;
+  style: (typeof CARD_STYLES)[number];
+}) {
+  const Icon = getLucideIcon(industry.icon, Activity);
+  const num = String(index + 1).padStart(2, "0");
+  const imageSrc = industry.image || FALLBACK_IMAGES[index % FALLBACK_IMAGES.length];
+
+  return (
+    <motion.div
+      key={industry.id}
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -8 }}
+      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+      className="relative mt-4 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_12px_40px_rgba(10,42,139,0.09)]"
+    >
+      <div className={`h-1 bg-gradient-to-r ${style.bar}`} />
+
+      <div className="grid lg:grid-cols-2">
+        {/* Image — top on mobile, right on desktop */}
+        <div className="relative order-1 min-h-[180px] sm:min-h-[220px] lg:order-2 lg:min-h-[280px]">
+          <Image
+            src={imageSrc}
+            alt={industry.name}
+            fill
+            className="object-cover"
+            sizes="(max-width: 1024px) 100vw, 50vw"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-white/80 via-transparent to-transparent lg:from-white/90 lg:via-white/25" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[var(--primary,#0A2A8B)]/45 via-transparent to-transparent" />
+          <div
+            className={`absolute bottom-3 right-3 rounded-xl bg-gradient-to-br ${style.accent} px-3.5 py-2.5 text-white shadow-lg sm:bottom-4 sm:right-4 sm:px-4 sm:py-3`}
+          >
+            <div className="text-xl font-bold leading-none sm:text-2xl">{num}</div>
+            <div className="mt-0.5 text-[9px] font-medium uppercase tracking-wider opacity-90 sm:text-[10px]">
+              {industry.name}
+            </div>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="order-2 flex flex-col justify-center p-5 sm:p-6 lg:order-1 lg:p-7">
+          <div className="mb-3 inline-flex w-fit items-center gap-1.5 rounded-full border border-slate-200/80 bg-slate-50 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
+            <Sparkles className={`h-3 w-3 ${style.label}`} />
+            Selected solution
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div
+              className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${style.accent} shadow-md`}
+            >
+              <Icon className="h-5 w-5 text-white" />
+            </div>
+            <div className="min-w-0">
+              <h3 className="text-lg font-bold tracking-tight text-[var(--primary,#0A2A8B)] sm:text-xl">
+                {industry.name}
+              </h3>
+              <span className={`font-mono text-xs font-medium ${style.label}`}>Solution {num}</span>
+            </div>
+          </div>
+
+          {industry.description && (
+            <p className="mt-3 text-sm leading-relaxed text-slate-600">{industry.description}</p>
+          )}
+
+          {industry.benefits.length > 0 && (
+            <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+              {industry.benefits.map((b) => (
+                <li
+                  key={b}
+                  className="flex items-center gap-2 rounded-lg border border-slate-100 bg-slate-50/80 px-3 py-2 text-xs font-medium text-slate-700 sm:text-sm"
+                >
+                  <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-500" />
+                  {b}
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <div className="mt-5 flex flex-wrap items-center gap-3">
+            <Link
+              href={industry.ctaLink || "#contact"}
+              className={`inline-flex items-center gap-2 rounded-full bg-gradient-to-r ${style.accent} px-5 py-2.5 text-sm font-semibold text-white shadow-md transition hover:opacity-95`}
+            >
+              {industry.ctaText || "Explore this solution"}
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+            {industry.stat && (
+              <div className="rounded-xl border border-slate-200/80 bg-white px-3 py-2">
+                <div className="text-sm font-bold text-[var(--primary,#0A2A8B)]">{industry.stat.v}</div>
+                <div className="text-[10px] uppercase tracking-wide text-slate-500">{industry.stat.l}</div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
 
 interface WhoWeServeSectionProps {
   section: FullSection;
+  embedded?: boolean;
 }
 
-export function WhoWeServeSection({ section }: WhoWeServeSectionProps) {
-  const serveContent = parseContent<WhoServeContent>(section.content);
+export function WhoWeServeSection({ section, embedded = false }: WhoWeServeSectionProps) {
   const industries = section.industries.map((ind) => {
     const parsed = parseIndustryBenefits(ind.benefits);
     return {
       id: ind.id,
       name: ind.name,
-      icon: getLucideIcon(parsed.icon || "Activity", Activity),
+      icon: parsed.icon || "Activity",
       image: ind.image,
       description: ind.description || "",
       benefits: parsed.items,
       stat: parsed.stat,
-      ctaLink: ind.ctaLink || "#contact",
-      ctaText: ind.ctaText || "Learn More",
+      ctaLink: ind.ctaLink,
+      ctaText: ind.ctaText,
     };
   });
 
@@ -35,142 +218,72 @@ export function WhoWeServeSection({ section }: WhoWeServeSectionProps) {
 
   const [active, setActive] = useState(0);
   const current = industries[active];
+  const activeStyle = CARD_STYLES[active % CARD_STYLES.length];
 
   return (
-    <section id="industries" className="relative overflow-hidden bg-mesh py-24">
-      <div className="absolute inset-0 bg-grid opacity-50" />
-      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto mb-14 max-w-3xl text-center">
-          <span className="text-sm font-semibold uppercase tracking-wider text-[var(--secondary,#2D7FF9)]">
-            {sectionEyebrow(section, "Who We Serve")}
-          </span>
-          <h2 className="mt-3 text-3xl font-bold text-[#0A2A8B] sm:text-4xl lg:text-[2.7rem]">
-            {section.title || "Healthcare solutions for every scale"}
-          </h2>
-          <p className="mt-4 text-lg text-slate-600">
-            {section.subtitle || "From single clinics to national health networks — one intelligent platform."}
-          </p>
-        </div>
+    <section
+      id="industries"
+      className={
+        embedded
+          ? "relative pt-12 lg:pt-14"
+          : "relative border-t border-slate-200/60 bg-white py-8 lg:py-10"
+      }
+    >
+      <div className={embedded ? "mx-auto max-w-7xl" : "mx-auto max-w-7xl px-4 sm:px-6 lg:px-8"}>
+        <SectionHeader
+          eyebrow={sectionEyebrow(section, "Who We Serve")}
+          title={section.title || "Solutions for Every Healthcare Provider"}
+          subtitle={section.subtitle}
+        />
 
-        <div className="grid gap-8 lg:grid-cols-[340px_1fr]">
-          {/* Tabs */}
-          <div className="flex flex-col gap-2">
+        <div className="rounded-2xl border border-slate-200/70 bg-slate-50/80 p-2 shadow-inner sm:p-2.5">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
             {industries.map((ind, i) => {
-              const Icon = ind.icon;
+              const Icon = getLucideIcon(ind.icon, Activity);
               const isActive = active === i;
+              const style = CARD_STYLES[i % CARD_STYLES.length];
               return (
                 <button
                   key={ind.id}
+                  type="button"
                   onClick={() => setActive(i)}
-                  className={`group flex items-center gap-4 rounded-2xl border p-4 text-left transition-all ${
+                  className={`relative flex flex-col items-center rounded-xl px-3 py-4 text-center transition-all duration-300 ${
                     isActive
-                      ? "border-transparent bg-gradient-to-r from-[#0A2A8B] to-[#2D7FF9] text-white shadow-xl shadow-blue-900/20"
-                      : "border-slate-200/70 bg-white/70 text-slate-700 hover:border-[#2D7FF9]/40 hover:bg-white"
+                      ? `border border-[var(--secondary,#2D7FF9)]/30 bg-white shadow-[0_8px_24px_rgba(45,127,249,0.12)] ${style.active}`
+                      : "border border-transparent bg-transparent hover:bg-white/70"
                   }`}
                 >
+                  {isActive && (
+                    <motion.div
+                      layoutId="serve-active"
+                      className="absolute inset-0 rounded-xl border border-[var(--secondary,#2D7FF9)]/25 bg-white"
+                      transition={{ type: "spring", stiffness: 400, damping: 32 }}
+                      style={{ zIndex: 0 }}
+                    />
+                  )}
                   <div
-                    className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-colors ${
-                      isActive ? "bg-white/15 text-white" : "bg-[#0A2A8B]/5 text-[#2D7FF9]"
+                    className={`relative z-10 mb-2 flex h-10 w-10 items-center justify-center rounded-lg ${style.icon} transition ${
+                      isActive ? "scale-110" : ""
                     }`}
                   >
-                    <Icon className="h-5 w-5" />
+                    <Icon className="h-4 w-4" />
                   </div>
-                  <div className="flex-1">
-                    <div className={`font-semibold ${isActive ? "text-white" : "text-[#0A2A8B]"}`}>{ind.name}</div>
-                  </div>
-                  <ArrowRight className={`h-4 w-4 transition-transform ${isActive ? "translate-x-0 opacity-100" : "-translate-x-1 opacity-0 group-hover:opacity-60"}`} />
+                  <span
+                    className={`relative z-10 text-xs font-semibold leading-tight sm:text-sm ${
+                      isActive ? "text-[var(--primary,#0A2A8B)]" : "text-slate-600"
+                    }`}
+                  >
+                    {ind.name}
+                  </span>
                 </button>
               );
             })}
           </div>
-
-          {/* Showcase */}
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={current.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.4 }}
-              className="overflow-hidden rounded-3xl border border-slate-200/70 bg-white shadow-[0_30px_60px_rgba(10,42,139,0.12)]"
-            >
-              {current.image && (
-                <div className="relative aspect-[16/8] w-full">
-                  <Image src={current.image} alt={current.name} fill className="object-cover" sizes="(max-width: 1024px) 100vw, 60vw" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0A2A8B]/85 via-[#0A2A8B]/30 to-transparent" />
-                  <div className="absolute bottom-5 left-6 right-6 flex items-end justify-between">
-                    <h3 className="text-2xl font-bold text-white sm:text-3xl">{current.name}</h3>
-                    {current.stat && (
-                      <div className="rounded-2xl bg-white/15 px-4 py-2 text-right backdrop-blur-lg">
-                        <div className="text-xl font-bold text-white">{current.stat.v}</div>
-                        <div className="text-[10px] uppercase tracking-wide text-blue-100">{current.stat.l}</div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-              <div className="p-6 sm:p-8">
-                <p className="text-lg leading-relaxed text-slate-600">{current.description}</p>
-                <div className="mt-6 grid gap-3 sm:grid-cols-3">
-                  {current.benefits.map((b) => (
-                    <div key={b} className="flex items-center gap-2 rounded-xl bg-[#F4F7FF] px-3 py-2.5">
-                      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100">
-                        <Check className="h-3.5 w-3.5 text-emerald-600" />
-                      </div>
-                      <span className="text-sm font-medium text-slate-700">{b}</span>
-                    </div>
-                  ))}
-                </div>
-                <Button className="mt-8" asChild>
-                  <Link href={current.ctaLink}>
-                    {current.ctaText} <ArrowRight className="ml-1 h-4 w-4" />
-                  </Link>
-                </Button>
-              </div>
-            </motion.div>
-          </AnimatePresence>
         </div>
 
-        {serveContent.consultingServices && serveContent.consultingServices.length > 0 && (
-          <div className="mt-20">
-            <div className="mx-auto mb-10 max-w-2xl text-center">
-              {serveContent.consultingEyebrow && (
-                <span className="text-sm font-semibold uppercase tracking-wider text-[var(--secondary,#2D7FF9)]">
-                  {serveContent.consultingEyebrow}
-                </span>
-              )}
-              {serveContent.consultingTitle && (
-                <h3 className="mt-3 text-2xl font-bold text-[var(--primary,#0A2A8B)] sm:text-3xl">
-                  {serveContent.consultingTitle}
-                </h3>
-              )}
-              {serveContent.consultingSubtitle && (
-                <p className="mt-3 text-slate-600">{serveContent.consultingSubtitle}</p>
-              )}
-            </div>
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-              {serveContent.consultingServices.map((svc: ConsultingService, i: number) => {
-                const Icon = getLucideIcon(svc.icon, Settings);
-                return (
-                  <motion.div
-                    key={svc.title + i}
-                    initial={{ opacity: 0, y: 16 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: i * 0.08 }}
-                    className="rounded-2xl border border-slate-200/70 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
-                  >
-                    <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--primary,#0A2A8B)] to-[var(--secondary,#2D7FF9)]">
-                      <Icon className="h-5 w-5 text-white" />
-                    </div>
-                    <h4 className="font-bold text-[var(--primary,#0A2A8B)]">{svc.title}</h4>
-                    <p className="mt-2 text-sm text-slate-600">{svc.description}</p>
-                  </motion.div>
-                );
-              })}
-            </div>
-          </div>
-        )}
+        <AnimatePresence mode="wait">
+          <ServeDetailPanel industry={current} index={active} style={activeStyle} />
+        </AnimatePresence>
       </div>
     </section>
   );

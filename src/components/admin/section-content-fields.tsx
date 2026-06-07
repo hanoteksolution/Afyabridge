@@ -138,8 +138,82 @@ function HeroFeaturesEditor({
   );
 }
 
+function ConsultingServicesFields({
+  section,
+  onUpdate,
+}: {
+  section: SectionWithContent;
+  onUpdate: (s: SectionWithContent) => void;
+}) {
+  const c = parseContent<WhoServeContent>(section.content);
+  const services = c.consultingServices || [];
+  return (
+    <div className="space-y-4">
+      <Input
+        placeholder="Consulting eyebrow"
+        value={c.consultingEyebrow || ""}
+        onChange={(e) => updateContent<WhoServeContent>(section, onUpdate, { consultingEyebrow: e.target.value })}
+      />
+      <Input
+        placeholder="Consulting title"
+        value={c.consultingTitle || ""}
+        onChange={(e) => updateContent<WhoServeContent>(section, onUpdate, { consultingTitle: e.target.value })}
+      />
+      <Textarea
+        placeholder="Consulting subtitle"
+        value={c.consultingSubtitle || ""}
+        rows={2}
+        onChange={(e) => updateContent<WhoServeContent>(section, onUpdate, { consultingSubtitle: e.target.value })}
+      />
+      {services.map((s, i) => (
+        <div key={i} className="grid gap-2 rounded border p-3 sm:grid-cols-3">
+          <Input
+            placeholder="Title"
+            value={s.title}
+            onChange={(e) => {
+              const next = [...services];
+              next[i] = { ...s, title: e.target.value };
+              updateContent<WhoServeContent>(section, onUpdate, { consultingServices: next });
+            }}
+          />
+          <Input
+            placeholder="Icon (Lucide)"
+            value={s.icon}
+            onChange={(e) => {
+              const next = [...services];
+              next[i] = { ...s, icon: e.target.value };
+              updateContent<WhoServeContent>(section, onUpdate, { consultingServices: next });
+            }}
+          />
+          <Input
+            placeholder="Description"
+            value={s.description}
+            onChange={(e) => {
+              const next = [...services];
+              next[i] = { ...s, description: e.target.value };
+              updateContent<WhoServeContent>(section, onUpdate, { consultingServices: next });
+            }}
+          />
+        </div>
+      ))}
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() =>
+          updateContent<WhoServeContent>(section, onUpdate, {
+            consultingServices: [...services, { title: "New Service", description: "", icon: "Settings" }],
+          })
+        }
+      >
+        <Plus className="h-3.5 w-3.5 mr-1" /> Add consulting service
+      </Button>
+    </div>
+  );
+}
+
 const EYEBROW_SECTIONS: SectionType[] = [
   "TRUST_BAR",
+  "WHO_WE_SERVE",
   "PLATFORM_MODULES",
   "OUR_APPROACH",
   "MISSION_VISION",
@@ -218,43 +292,22 @@ export function SectionContentFields({
       );
     }
 
-    case "WHO_WE_SERVE": {
-      const c = parseContent<WhoServeContent>(section.content);
-      const services = c.consultingServices || [];
+    case "WHO_WE_SERVE":
       return (
-        <div className="space-y-4 rounded-lg border bg-white p-4">
-          <h5 className="text-sm font-semibold text-[#00153D]">Consulting Services Row</h5>
-          <Input placeholder="Consulting eyebrow" value={c.consultingEyebrow || ""} onChange={(e) => updateContent<WhoServeContent>(section, onUpdate, { consultingEyebrow: e.target.value })} />
-          <Input placeholder="Consulting title" value={c.consultingTitle || ""} onChange={(e) => updateContent<WhoServeContent>(section, onUpdate, { consultingTitle: e.target.value })} />
-          <Textarea placeholder="Consulting subtitle" value={c.consultingSubtitle || ""} rows={2} onChange={(e) => updateContent<WhoServeContent>(section, onUpdate, { consultingSubtitle: e.target.value })} />
-          {services.map((s, i) => (
-            <div key={i} className="grid gap-2 rounded border p-3 sm:grid-cols-3">
-              <Input placeholder="Title" value={s.title} onChange={(e) => {
-                const next = [...services];
-                next[i] = { ...s, title: e.target.value };
-                updateContent<WhoServeContent>(section, onUpdate, { consultingServices: next });
-              }} />
-              <Input placeholder="Icon" value={s.icon} onChange={(e) => {
-                const next = [...services];
-                next[i] = { ...s, icon: e.target.value };
-                updateContent<WhoServeContent>(section, onUpdate, { consultingServices: next });
-              }} />
-              <Input placeholder="Description" value={s.description} onChange={(e) => {
-                const next = [...services];
-                next[i] = { ...s, description: e.target.value };
-                updateContent<WhoServeContent>(section, onUpdate, { consultingServices: next });
-              }} />
-            </div>
-          ))}
-          <Button variant="outline" size="sm" onClick={() => updateContent<WhoServeContent>(section, onUpdate, { consultingServices: [...services, { title: "New Service", description: "", icon: "Settings" }] })}>
-            <Plus className="h-3.5 w-3.5 mr-1" /> Add consulting service
-          </Button>
+        <div className="space-y-3 rounded-lg border bg-white p-4">
+          <h5 className="text-sm font-semibold text-[#00153D]">Who We Serve</h5>
+          <EyebrowField section={section} onUpdate={onUpdate} />
+          <p className="text-sm text-slate-500">
+            Edit hospitals, clinics, images, benefits, and CTAs in <strong>Industries / Audiences</strong> below,
+            then click <strong>Save Section</strong>.
+          </p>
         </div>
       );
-    }
 
     case "CUSTOM": {
-      const c = parseContent<{ variant?: string; description?: string; eyebrow?: string }>(section.content);
+      const c = parseContent<WhoServeContent & { variant?: string; description?: string; eyebrow?: string }>(
+        section.content
+      );
       return (
         <div className="space-y-3 rounded-lg border bg-white p-4">
           <h5 className="text-sm font-semibold text-[#00153D]">Custom Section Variant</h5>
@@ -266,6 +319,7 @@ export function SectionContentFields({
               onChange={(e) => updateContent(section, onUpdate, { variant: e.target.value })}
             >
               <option value="PAGE_HEADER">Page Header (inner page hero)</option>
+              <option value="CONSULTING">Consulting Services (homepage block)</option>
               <option value="FAQ">FAQ List (full page)</option>
             </select>
           </div>
@@ -273,6 +327,8 @@ export function SectionContentFields({
             <p className="text-sm text-slate-500">
               FAQ questions are managed in Admin → FAQ. This section displays all published FAQ items.
             </p>
+          ) : c.variant === "CONSULTING" ? (
+            <ConsultingServicesFields section={section} onUpdate={onUpdate} />
           ) : (
             <>
               <Input

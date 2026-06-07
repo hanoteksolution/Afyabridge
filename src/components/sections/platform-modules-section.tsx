@@ -1,250 +1,105 @@
 "use client";
 
-import { useState } from "react";
+import Link from "next/link";
 import { motion } from "framer-motion";
-import { LayoutGrid, Activity } from "lucide-react";
+import { ArrowRight, LayoutGrid, Sparkles } from "lucide-react";
 import { getLucideIcon } from "@/lib/icons";
-import { parseBullets, sectionEyebrow } from "@/lib/section-content";
+import { sectionEyebrow } from "@/lib/section-content";
+import { SectionHeader } from "@/components/sections/section-header";
 import type { FullSection } from "@/lib/cms";
+
+const MODULE_STYLES = [
+  { bg: "from-violet-500/10 to-violet-600/5", icon: "bg-violet-500/15 text-violet-600 ring-violet-500/20" },
+  { bg: "from-orange-500/10 to-orange-600/5", icon: "bg-orange-500/15 text-orange-600 ring-orange-500/20" },
+  { bg: "from-rose-500/10 to-rose-600/5", icon: "bg-rose-500/15 text-rose-600 ring-rose-500/20" },
+  { bg: "from-emerald-500/10 to-emerald-600/5", icon: "bg-emerald-500/15 text-emerald-600 ring-emerald-500/20" },
+  { bg: "from-sky-500/10 to-sky-600/5", icon: "bg-sky-500/15 text-sky-600 ring-sky-500/20" },
+  { bg: "from-teal-500/10 to-teal-600/5", icon: "bg-teal-500/15 text-teal-600 ring-teal-500/20" },
+  { bg: "from-amber-500/10 to-amber-600/5", icon: "bg-amber-500/15 text-amber-600 ring-amber-500/20" },
+  { bg: "from-indigo-500/10 to-indigo-600/5", icon: "bg-indigo-500/15 text-indigo-600 ring-indigo-500/20" },
+];
 
 interface PlatformModulesSectionProps {
   section: FullSection;
 }
 
-/** Polar coords in % of the square diagram (50,50 = center). */
-function polarPosition(index: number, total: number, radius = 36) {
-  const angle = (index / total) * Math.PI * 2 - Math.PI / 2;
-  return {
-    x: 50 + radius * Math.cos(angle),
-    y: 50 + radius * Math.sin(angle),
-  };
-}
-
 export function PlatformModulesSection({ section }: PlatformModulesSectionProps) {
-  const [activeId, setActiveId] = useState<string | null>(null);
-
   const modules = section.serviceModules.map((m) => ({
     id: m.id,
     name: m.name,
     icon: m.icon,
     description: m.description,
-    benefits: parseBullets(m.benefits),
   }));
 
   if (!modules.length) return null;
 
-  const count = modules.length;
+  const ctaText = section.buttonText || "See All Modules";
+  const ctaLink = section.buttonLink || "/platform";
 
   return (
-    <section
-      id="platform"
-      className="scroll-mt-28 relative overflow-hidden bg-[#041B52] py-24 text-white lg:py-32"
-    >
-      <div className="absolute inset-0 bg-mesh-dark" />
-      <div className="absolute inset-0 bg-grid-dark opacity-40" />
-      <div className="pointer-events-none absolute left-1/2 top-1/2 h-[min(560px,80vw)] w-[min(560px,80vw)] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#2563EB]/10 blur-3xl" />
+    <section id="platform" className="scroll-mt-28 relative overflow-hidden pt-14 pb-8 lg:pt-16 lg:pb-10">
+      <div className="pointer-events-none absolute inset-0 bg-mesh" aria-hidden />
+      <div
+        className="pointer-events-none absolute inset-0 opacity-60"
+        style={{
+          background:
+            "radial-gradient(ellipse 70% 50% at 50% 0%, rgba(45,127,249,0.08), transparent 60%)",
+        }}
+        aria-hidden
+      />
 
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <SectionHeader
+          eyebrow={sectionEyebrow(section, "Powerful Modules")}
+          title={section.title || "Everything You Need in One Platform"}
+          subtitle={section.subtitle}
+        />
+
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-5">
+          {modules.map((mod, i) => {
+            const Icon = getLucideIcon(mod.icon, LayoutGrid);
+            const style = MODULE_STYLES[i % MODULE_STYLES.length];
+            return (
+              <motion.div
+                key={mod.id}
+                initial={{ opacity: 0, y: 14 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.035 }}
+                className={`group relative overflow-hidden rounded-2xl border border-white/80 bg-gradient-to-br ${style.bg} p-5 text-center shadow-[0_4px_24px_rgba(10,42,139,0.06)] backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-[var(--secondary,#2D7FF9)]/25 hover:shadow-[0_20px_50px_rgba(45,127,249,0.12)]`}
+              >
+                <div className="pointer-events-none absolute -right-6 -top-6 h-20 w-20 rounded-full bg-white/40 blur-2xl transition group-hover:bg-[var(--secondary,#2D7FF9)]/10" />
+                <div
+                  className={`relative mx-auto mb-3.5 flex h-12 w-12 items-center justify-center rounded-xl ring-1 ${style.icon} transition duration-300 group-hover:scale-110 group-hover:shadow-md`}
+                >
+                  <Icon className="h-5 w-5" />
+                </div>
+                <h3 className="relative text-[15px] font-bold text-[var(--primary,#0A2A8B)]">{mod.name}</h3>
+                {mod.description && (
+                  <p className="relative mt-1.5 text-xs leading-relaxed text-slate-500 sm:text-sm">
+                    {mod.description}
+                  </p>
+                )}
+              </motion.div>
+            );
+          })}
+        </div>
+
         <motion.div
-          initial={{ opacity: 0, y: 24 }}
+          initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="mx-auto mb-14 max-w-3xl text-center lg:mb-16"
+          className="mt-8 flex justify-center lg:mt-9"
         >
-          <span className="text-sm font-semibold uppercase tracking-widest text-[#60A5FA]">
-            {sectionEyebrow(section, "Platform Modules")}
-          </span>
-          <h2 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl lg:text-[2.75rem]">
-            {section.title || "Everything Your Facility Needs"}
-          </h2>
-          <p className="mt-4 text-lg leading-relaxed text-blue-100/75">
-            {section.subtitle || "Integrated modules that work together seamlessly."}
-          </p>
-        </motion.div>
-
-        {/* Radial ecosystem — desktop */}
-        <div className="relative mx-auto hidden w-full max-w-[44rem] px-6 lg:block">
-          <div className="relative aspect-square w-full">
-            {/* Orbit rings */}
-            <div className="absolute left-1/2 top-1/2 h-[76%] w-[76%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#2563EB]/20" />
-            <div className="absolute left-1/2 top-1/2 h-[54%] w-[54%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-dashed border-[#3B82F6]/15" />
-
-            {/* Connection lines */}
-            <svg
-              className="absolute inset-0 h-full w-full overflow-visible"
-              viewBox="0 0 100 100"
-              preserveAspectRatio="xMidYMid meet"
-              aria-hidden
-            >
-              <defs>
-                <linearGradient id="moduleLineGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.95" />
-                  <stop offset="100%" stopColor="#00C2FF" stopOpacity="0.2" />
-                </linearGradient>
-                <filter id="moduleLineGlow">
-                  <feGaussianBlur stdDeviation="0.5" result="blur" />
-                  <feMerge>
-                    <feMergeNode in="blur" />
-                    <feMergeNode in="SourceGraphic" />
-                  </feMerge>
-                </filter>
-              </defs>
-              {modules.map((mod, i) => {
-                const pos = polarPosition(i, count);
-                const isActive = activeId === mod.id;
-                return (
-                  <motion.line
-                    key={mod.id}
-                    x1="50"
-                    y1="50"
-                    x2={pos.x}
-                    y2={pos.y}
-                    stroke="url(#moduleLineGrad)"
-                    strokeDasharray={isActive ? "none" : "1.4 1.4"}
-                    filter="url(#moduleLineGlow)"
-                    initial={{ pathLength: 0, opacity: 0 }}
-                    whileInView={{ pathLength: 1, opacity: 0.5 }}
-                    animate={{ opacity: isActive ? 1 : 0.5 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.7, delay: 0.15 + i * 0.06, ease: "easeOut" }}
-                    style={{ strokeWidth: isActive ? 0.5 : 0.32 }}
-                  />
-                );
-              })}
-            </svg>
-
-            {/* Central hub */}
-            <div className="absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2">
-              <motion.div
-                initial={{ opacity: 0, scale: 0.75 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.55, type: "spring", stiffness: 140 }}
-                className="relative"
-              >
-                <div className="absolute -inset-4 animate-pulse-ring rounded-3xl bg-[#2563EB]/30" />
-                <div className="absolute -inset-8 rounded-full bg-[#2563EB]/10 blur-xl" />
-                <div className="relative flex h-32 w-32 flex-col items-center justify-center rounded-3xl border border-white/25 bg-gradient-to-br from-[#2563EB] to-[#00C2FF] shadow-[0_0_70px_rgba(37,99,235,0.5)]">
-                  <Activity className="h-8 w-8 text-white" strokeWidth={2.5} />
-                  <span className="mt-2 text-sm font-bold tracking-wide text-white">Afya Bridge</span>
-                  <span className="mt-0.5 text-[10px] font-medium text-white/70">Core Platform</span>
-                </div>
-              </motion.div>
-            </div>
-
-            {/* Module nodes */}
-            {modules.map((mod, i) => {
-              const Icon = getLucideIcon(mod.icon, LayoutGrid);
-              const pos = polarPosition(i, count);
-              const isActive = activeId === mod.id;
-
-              return (
-                <motion.div
-                  key={mod.id}
-                  initial={{ opacity: 0, scale: 0.65 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.2 + i * 0.07, type: "spring", stiffness: 130 }}
-                  style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
-                  className="absolute z-10 w-[9.25rem] -translate-x-1/2 -translate-y-1/2"
-                  onMouseEnter={() => setActiveId(mod.id)}
-                  onMouseLeave={() => setActiveId(null)}
-                >
-                  <motion.div
-                    animate={{
-                      scale: isActive ? 1.05 : 1,
-                      y: isActive ? -3 : 0,
-                    }}
-                    transition={{ duration: 0.25 }}
-                    className={`group rounded-2xl border p-3.5 text-center backdrop-blur-xl transition-colors duration-300 ${
-                      isActive
-                        ? "border-[#60A5FA]/55 bg-white/15 shadow-[0_12px_36px_rgba(37,99,235,0.3)]"
-                        : "border-white/15 bg-white/10 shadow-lg shadow-black/10 hover:border-[#60A5FA]/35 hover:bg-white/[0.12]"
-                    }`}
-                  >
-                    <div
-                      className={`mx-auto mb-2.5 flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#041B52] to-[#2563EB] shadow-md transition-transform duration-300 ${
-                        isActive ? "scale-110 shadow-[#2563EB]/40" : "group-hover:scale-105"
-                      }`}
-                    >
-                      <Icon className="h-[18px] w-[18px] text-white" />
-                    </div>
-                    <div className="text-xs font-semibold leading-snug text-white">{mod.name}</div>
-                    {(mod.description || mod.benefits.length > 0) && (
-                      <motion.div
-                        initial={false}
-                        animate={{
-                          opacity: isActive ? 1 : 0,
-                          height: isActive ? "auto" : 0,
-                          marginTop: isActive ? 6 : 0,
-                        }}
-                        className="overflow-hidden text-[10px] leading-relaxed text-blue-100/65"
-                      >
-                        {mod.description && <p>{mod.description}</p>}
-                        {mod.benefits.length > 0 && (
-                          <ul className="mt-1 space-y-0.5 text-left">
-                            {mod.benefits.map((b) => (
-                              <li key={b}>• {b}</li>
-                            ))}
-                          </ul>
-                        )}
-                      </motion.div>
-                    )}
-                  </motion.div>
-                </motion.div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Grid — mobile / tablet */}
-        <div className="lg:hidden">
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="mx-auto mb-8 flex max-w-xs items-center gap-4 rounded-2xl border border-[#2563EB]/30 bg-gradient-to-r from-[#2563EB]/20 to-[#00C2FF]/10 p-4 backdrop-blur-lg"
+          <Link
+            href={ctaLink}
+            className="group inline-flex items-center gap-2.5 rounded-full bg-gradient-to-r from-[var(--secondary,#2D7FF9)] to-[#1a6fe8] px-7 py-3 text-sm font-semibold text-white shadow-[0_8px_28px_rgba(45,127,249,0.35)] transition hover:shadow-[0_12px_36px_rgba(45,127,249,0.45)]"
           >
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#2563EB] to-[#00C2FF] shadow-lg shadow-[#2563EB]/30">
-              <Activity className="h-6 w-6 text-white" strokeWidth={2.5} />
-            </div>
-            <div>
-              <div className="font-bold text-white">Afya Bridge</div>
-              <div className="text-sm text-blue-100/70">Core platform hub</div>
-            </div>
-          </motion.div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            {modules.map((mod, i) => {
-              const Icon = getLucideIcon(mod.icon, LayoutGrid);
-              return (
-                <motion.div
-                  key={mod.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.05 }}
-                  className="rounded-2xl border border-white/15 bg-white/10 p-5 backdrop-blur-lg transition hover:border-[#60A5FA]/40 hover:bg-white/[0.12]"
-                >
-                  <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-[#041B52] to-[#2563EB] shadow-lg">
-                    <Icon className="h-5 w-5 text-white" />
-                  </div>
-                  <div className="font-semibold text-white">{mod.name}</div>
-                  {mod.description && (
-                    <p className="mt-1.5 text-sm leading-relaxed text-blue-100/65">{mod.description}</p>
-                  )}
-                  {mod.benefits.length > 0 && (
-                    <ul className="mt-2 space-y-1 text-xs text-blue-100/60">
-                      {mod.benefits.map((b) => (
-                        <li key={b}>• {b}</li>
-                      ))}
-                    </ul>
-                  )}
-                </motion.div>
-              );
-            })}
-          </div>
-        </div>
+            <Sparkles className="h-4 w-4 opacity-80" />
+            {ctaText}
+            <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
+          </Link>
+        </motion.div>
       </div>
     </section>
   );
