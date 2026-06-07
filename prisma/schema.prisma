@@ -1,0 +1,415 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum SectionType {
+  HERO
+  TRUST_BAR
+  WHY_AFYA
+  WHO_WE_SERVE
+  PLATFORM_MODULES
+  OUR_APPROACH
+  MISSION_VISION
+  TESTIMONIALS
+  CASE_STUDIES
+  BLOG
+  CTA
+  CONTACT
+  CUSTOM
+}
+
+enum ContactStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  CONVERTED
+  CLOSED
+}
+
+enum ActivityAction {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN
+  LOGOUT
+  PUBLISH
+  UNPUBLISH
+}
+
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  permissions Json     @default("[]")
+  users       User[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model User {
+  id           String        @id @default(cuid())
+  name         String?
+  email        String        @unique
+  password     String
+  image        String?
+  roleId       String
+  role         Role          @relation(fields: [roleId], references: [id])
+  isActive     Boolean       @default(true)
+  activityLogs ActivityLog[]
+  blogPosts    BlogPost[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Page {
+  id          String    @id @default(cuid())
+  title       String
+  slug        String    @unique
+  description String?
+  isPublished Boolean   @default(true)
+  isHome      Boolean   @default(false)
+  sections    Section[]
+  seo         SEO?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Section {
+  id             String          @id @default(cuid())
+  pageId         String
+  page           Page            @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  type           SectionType
+  title          String?
+  subtitle       String?
+  content        Json?
+  image          String?
+  icon           String?
+  buttonText     String?
+  buttonLink     String?
+  buttonText2    String?
+  buttonLink2    String?
+  background     Json?
+  isVisible      Boolean         @default(true)
+  order          Int             @default(0)
+  heroSlides     HeroSlide[]
+  trustStats     TrustStat[]
+  whyCards       WhyCard[]
+  industries     Industry[]
+  serviceModules ServiceModule[]
+  approachSteps  ApproachStep[]
+  missionValues  MissionValue[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([pageId, order])
+}
+
+model HeroSlide {
+  id         String  @id @default(cuid())
+  sectionId  String
+  section    Section @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  title      String
+  subtitle   String?
+  image      String?
+  videoUrl   String?
+  ctaText    String?
+  ctaLink    String?
+  ctaText2   String?
+  ctaLink2   String?
+  badge      String?
+  order      Int     @default(0)
+  isVisible  Boolean @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model TrustStat {
+  id        String  @id @default(cuid())
+  sectionId String
+  section   Section @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  label     String
+  value     Int
+  suffix    String?
+  icon      String?
+  order     Int     @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model WhyCard {
+  id          String  @id @default(cuid())
+  sectionId   String
+  section     Section @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  icon        String?
+  image       String?
+  metricValue String?
+  metricLabel String?
+  bullets     Json?
+  order       Int     @default(0)
+  isVisible   Boolean @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Industry {
+  id          String  @id @default(cuid())
+  sectionId   String
+  section     Section @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  name        String
+  slug        String
+  description String?
+  image       String?
+  benefits    Json?
+  ctaText     String?
+  ctaLink     String?
+  order       Int     @default(0)
+  isVisible   Boolean @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ServiceModule {
+  id          String  @id @default(cuid())
+  sectionId   String
+  section     Section @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  name        String
+  slug        String
+  description String?
+  image       String?
+  icon        String?
+  benefits    Json?
+  order       Int     @default(0)
+  isVisible   Boolean @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ApproachStep {
+  id          String  @id @default(cuid())
+  sectionId   String
+  section     Section @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  icon        String?
+  order       Int     @default(0)
+  isVisible   Boolean @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model MissionValue {
+  id          String  @id @default(cuid())
+  sectionId   String
+  section     Section @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  type        String
+  title       String
+  content     String?
+  icon        String?
+  order       Int     @default(0)
+  isVisible   Boolean @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Testimonial {
+  id        String   @id @default(cuid())
+  name      String
+  role      String?
+  hospital  String?
+  review    String
+  result    String?
+  rating    Int      @default(5)
+  photo     String?
+  order     Int      @default(0)
+  isVisible Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CaseStudy {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  summary     String?
+  story       String?
+  image       String?
+  results     Json?
+  kpis        Json?
+  pdfUrl      String?
+  isPublished Boolean  @default(true)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model BlogCategory {
+  id        String     @id @default(cuid())
+  name      String     @unique
+  slug      String     @unique
+  posts     BlogPost[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model BlogTag {
+  id        String     @id @default(cuid())
+  name      String     @unique
+  slug      String     @unique
+  posts     BlogPost[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model BlogPost {
+  id          String        @id @default(cuid())
+  title       String
+  slug        String        @unique
+  excerpt     String?
+  content     String
+  coverImage  String?
+  authorId    String?
+  author      User?         @relation(fields: [authorId], references: [id])
+  categoryId  String?
+  category    BlogCategory? @relation(fields: [categoryId], references: [id])
+  tags        BlogTag[]
+  isPublished Boolean       @default(false)
+  publishedAt DateTime?
+  seo         SEO?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model FAQ {
+  id        String   @id @default(cuid())
+  question  String
+  answer    String
+  category  String?
+  order     Int      @default(0)
+  isVisible Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Menu {
+  id        String     @id @default(cuid())
+  name      String     @unique
+  slug      String     @unique
+  location  String?
+  items     MenuItem[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model MenuItem {
+  id        String     @id @default(cuid())
+  menuId    String
+  menu      Menu       @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  parentId  String?
+  parent    MenuItem?  @relation("MenuHierarchy", fields: [parentId], references: [id])
+  children  MenuItem[] @relation("MenuHierarchy")
+  label     String
+  url       String
+  order     Int        @default(0)
+  isVisible Boolean    @default(true)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model Contact {
+  id           String        @id @default(cuid())
+  name         String
+  facilityName String?
+  role         String?
+  facilityType String?
+  email        String
+  phone        String?
+  country      String?
+  message      String?
+  requestDemo  Boolean       @default(false)
+  status       ContactStatus @default(NEW)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model NewsletterSubscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model Setting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     Json
+  group     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SEO {
+  id              String    @id @default(cuid())
+  pageId          String?   @unique
+  page            Page?     @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  blogPostId      String?   @unique
+  blogPost        BlogPost? @relation(fields: [blogPostId], references: [id], onDelete: Cascade)
+  metaTitle       String?
+  metaDescription String?
+  metaKeywords    String?
+  ogTitle         String?
+  ogDescription   String?
+  ogImage         String?
+  canonicalUrl    String?
+  structuredData  Json?
+  noIndex         Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Media {
+  id           String   @id @default(cuid())
+  filename     String
+  originalName String
+  url          String
+  publicId     String?
+  mimeType     String?
+  size         Int?
+  width        Int?
+  height       Int?
+  alt          String?
+  folder       String?
+  uploadedBy   String?
+  createdAt    DateTime @default(now())
+}
+
+model ActivityLog {
+  id         String         @id @default(cuid())
+  userId     String?
+  user       User?          @relation(fields: [userId], references: [id])
+  action     ActivityAction
+  entity     String
+  entityId   String?
+  details    Json?
+  ipAddress  String?
+  createdAt  DateTime       @default(now())
+}
+
+model TeamMember {
+  id        String   @id @default(cuid())
+  name      String
+  role      String?
+  bio       String?
+  photo     String?
+  linkedin  String?
+  order     Int      @default(0)
+  isVisible Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

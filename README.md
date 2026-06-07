@@ -1,36 +1,88 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Afya Bridge
 
-## Getting Started
+**Bridging Technology & Care** — A premium healthcare technology company website with a fully dynamic CMS admin platform.
 
-First, run the development server:
+## Features
+
+### Public Website
+- 12 dynamic homepage sections (Hero, Trust Bar, Why Afya, Who We Serve, Platform Modules, Approach, Mission/Vision, Testimonials, Case Studies, Blog, CTA, Contact)
+- Fully CMS-driven — no hardcoded content
+- Premium enterprise design with Framer Motion animations
+- Blog with categories and SEO
+- Contact form with demo requests
+- Newsletter subscription
+- Dynamic sitemap, robots.txt, OpenGraph, JSON-LD structured data
+
+### Admin CMS
+- Dashboard with analytics charts and lead tracking
+- Page builder with section management (reorder, duplicate, enable/disable)
+- Media library with drag & drop upload
+- SEO manager, menu builder, settings
+- Blog, testimonials, case studies CRUD
+- User & role management with RBAC
+- Activity audit logs
+- Lead pipeline (New → Contacted → Qualified → Converted → Closed)
+
+## Quick Start
+
+### Prerequisites
+- Node.js 18+
+- PostgreSQL database
+
+### Setup
 
 ```bash
+# Install dependencies
+npm install
+
+# Configure environment
+cp .env.example .env
+# Edit .env with your database credentials
+
+# Option A: Use Prisma local Postgres
+npx prisma dev
+
+# Option B: Use your own PostgreSQL
+# Set DATABASE_URL and DIRECT_DATABASE_URL in .env
+
+# Push schema and seed data
+npm run db:push
+npm run db:seed
+
+# Start development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### URLs
+- **Website:** http://localhost:3000
+- **Admin:** http://localhost:3000/admin/login
+- **Credentials:** `admin@afyabridge.com` / `admin123`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start development server |
+| `npm run build` | Production build |
+| `npm run db:migrate` | Run database migrations |
+| `npm run db:push` | Push schema to database |
+| `npm run db:seed` | Seed default content |
+| `npm run db:studio` | Open Prisma Studio |
 
-## Learn More
+## Architecture
 
-To learn more about Next.js, take a look at the following resources:
+See [ARCHITECTURE.md](./ARCHITECTURE.md) for full project structure, database schema, API documentation, and CMS architecture.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Tech Stack
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Next.js 15+ · TypeScript · TailwindCSS · Shadcn UI · Framer Motion · Prisma · PostgreSQL · NextAuth · Cloudinary
 
-## Deploy on Vercel
+## Brand Colors
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Color | Hex |
+|-------|-----|
+| Primary | `#0A1F78` |
+| Secondary | `#2563EB` |
+| Accent | `#00C2FF` |
+| Success | `#10B981` |
+| Background | `#F8FAFC` |
