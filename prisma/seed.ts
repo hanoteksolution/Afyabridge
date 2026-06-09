@@ -79,7 +79,7 @@ async function main() {
   const sectionDefs: { type: SectionType; title: string; subtitle?: string; order: number; buttonText?: string; buttonLink?: string; buttonText2?: string; buttonLink2?: string }[] = [
     { type: "HERO", title: "Empower Clinics & Hospitals to Deliver Better Healthcare", subtitle: "Modern healthcare software that improves patient flow, operational efficiency, and decision-making — with local support.", order: 0, buttonText: "Request a Demo", buttonLink: "#contact", buttonText2: "See It In Action", buttonLink2: "#platform" },
     { type: "TRUST_BAR", title: "Trusted Across East Africa", order: 1 },
-    { type: "WHY_AFYA", title: "Built for Healthcare Providers Who Care", subtitle: "Practical innovation that improves patient care, efficiency, and trust.", order: 2 },
+    { type: "WHY_AFYA", title: "Technology + Expertise", subtitle: "We provide both the platform and the guidance needed to improve healthcare operations.", order: 2 },
     { type: "WHO_WE_SERVE", title: "Healthcare Solutions for Every Scale", order: 3 },
     { type: "PLATFORM_MODULES", title: "Everything Your Facility Needs", subtitle: "Integrated modules that work together seamlessly.", order: 4 },
     { type: "OUR_APPROACH", title: "From Assessment to Success", subtitle: "A proven implementation process designed for healthcare.", order: 5 },
@@ -296,14 +296,38 @@ async function main() {
     await prisma.section.update({
       where: { id: whySec.id },
       data: {
+        title: "Technology + Expertise",
+        subtitle: "We provide both the platform and the guidance needed to improve healthcare operations.",
         content: {
-          eyebrow: "Two Pillars, One Mission",
-          productTitle: "Built for Healthcare Providers Who Care",
-          productFeatures: ["Unified patient records & workflows", "Real-time dashboards & reporting", "M-Pesa & insurance billing integration", "Role-based access & audit trails"],
-          productLink: "/platform",
-          consultingTitle: "Expert Implementation & Support",
-          consultingFeatures: ["Process optimization & workflow design", "Change management & staff adoption", "Compliance & data governance advisory", "Ongoing support & system optimization"],
-          consultingLink: "/implementation",
+          eyebrow: "Two Pillars. One Mission.",
+          productTitle: "Our Product",
+          productDescription:
+            "An all-in-one healthcare management system built to digitize and connect every part of your facility.",
+          productFeatures: [
+            "Patient Management",
+            "Clinical & EMR",
+            "Billing & Revenue Cycle",
+            "Pharmacy & Inventory",
+            "Laboratory & Diagnostics",
+            "Analytics & Reporting",
+            "Secure Cloud Infrastructure",
+            "And more...",
+          ],
+          productImage: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80",
+          productLink: "#platform",
+          productLinkText: "Explore Platform",
+          consultingTitle: "Our Consulting",
+          consultingDescription:
+            "Expert guidance to optimize processes, build capacity and drive sustainable improvement.",
+          consultingFeatures: [
+            "Process Optimization",
+            "Digital Transformation",
+            "Training & Capacity Building",
+            "Change Management",
+          ],
+          consultingImage: "https://images.unsplash.com/photo-1631815588090-d4bfec5b1ccb?auto=format&fit=crop&w=800&q=80",
+          consultingLink: "#consulting",
+          consultingLinkText: "Explore Consulting",
         },
       },
     });

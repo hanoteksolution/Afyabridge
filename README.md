@@ -69,6 +69,22 @@ npm run dev
 | `npm run db:seed` | Seed default content |
 | `npm run db:studio` | Open Prisma Studio |
 
+## Make Commands
+
+If you prefer `make`, use these shortcuts:
+
+| Command | Description |
+|---------|-------------|
+| `make help` | List all available targets |
+| `make dev` | Start development server |
+| `make db-dev` | Start local Prisma Postgres |
+| `make db-restart` | Restart local Prisma Postgres |
+| `make db-push` | Push schema to database |
+| `make db-migrate` | Run database migrations |
+| `make db-seed` | Seed default content |
+| `make db-reset` | Reset DB and seed it |
+| `make db-studio` | Open Prisma Studio |
+
 ## Architecture
 
 See [ARCHITECTURE.md](./ARCHITECTURE.md) for full project structure, database schema, API documentation, and CMS architecture.

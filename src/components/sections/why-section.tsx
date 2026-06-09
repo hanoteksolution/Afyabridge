@@ -8,13 +8,13 @@ import {
   CheckCircle2,
   ArrowRight,
   TrendingUp,
-  Layers,
-  Briefcase,
+  Building2,
+  ClipboardList,
   ChevronRight,
 } from "lucide-react";
 import { getLucideIcon } from "@/lib/icons";
 import { HEALTHCARE_IMAGES } from "@/lib/images";
-import { parseBullets, parseContent, sectionEyebrow, type WhyPillarContent } from "@/lib/section-content";
+import { parseBullets, parseContent, type WhyPillarContent } from "@/lib/section-content";
 import { WhoWeServeSection } from "@/components/sections/who-we-serve-section";
 import { SectionHeader } from "@/components/sections/section-header";
 import type { FullSection } from "@/lib/cms";
@@ -34,6 +34,46 @@ type WhyCard = {
   bullets: string[];
   showMetric: boolean;
 };
+
+const PILLAR_DEFAULTS = {
+  product: {
+    description:
+      "An all-in-one healthcare management system built to digitize and connect every part of your facility.",
+    features: [
+      "Patient Management",
+      "Clinical & EMR",
+      "Billing & Revenue Cycle",
+      "Pharmacy & Inventory",
+      "Laboratory & Diagnostics",
+      "Analytics & Reporting",
+      "Secure Cloud Infrastructure",
+      "And more...",
+    ],
+    image: HEALTHCARE_IMAGES.dataAnalytics,
+    link: "#platform",
+    linkText: "Explore Platform",
+  },
+  consulting: {
+    description:
+      "Expert guidance to optimize processes, build capacity and drive sustainable improvement.",
+    features: [
+      "Process Optimization",
+      "Digital Transformation",
+      "Training & Capacity Building",
+      "Change Management",
+    ],
+    image: HEALTHCARE_IMAGES.medicalTeam,
+    link: "#consulting",
+    linkText: "Explore Consulting",
+  },
+} as const;
+
+function resolvePillarFeatures(variant: "product" | "consulting", features?: string[]) {
+  if (!features?.length) return [];
+  if (variant === "product" && features[0]?.startsWith("Unified patient")) return [];
+  if (variant === "consulting" && features[0]?.startsWith("Process optimization")) return [];
+  return features;
+}
 
 function PillarCard({
   variant,
@@ -55,17 +95,18 @@ function PillarCard({
   index: number;
 }) {
   const isProduct = variant === "product";
-  const Icon = isProduct ? Layers : Briefcase;
-  const num = String(index + 1).padStart(2, "0");
-  const label = isProduct ? "Healthcare Platform" : "Expert Services";
-  const accentBar = isProduct
-    ? "from-[var(--primary,#0A2A8B)] via-[var(--secondary,#2563EB)] to-[#00C2FF]"
-    : "from-emerald-600 via-teal-500 to-cyan-400";
-  const iconWrap = isProduct
-    ? "bg-gradient-to-br from-[var(--primary,#0A2A8B)] to-[var(--secondary,#2563EB)] shadow-blue-900/25"
-    : "bg-gradient-to-br from-emerald-600 to-teal-500 shadow-emerald-900/20";
-  const glow = isProduct ? "bg-[var(--secondary,#2563EB)]/8" : "bg-emerald-500/8";
-  const checkBg = isProduct ? "bg-[var(--secondary,#2563EB)]/10 text-[var(--secondary,#2563EB)]" : "bg-emerald-500/10 text-emerald-600";
+  const defaults = PILLAR_DEFAULTS[variant];
+  const Icon = isProduct ? Building2 : ClipboardList;
+  const label = isProduct ? "Our Product" : "Our Consulting";
+  const desc = description || defaults.description;
+  const feats = features.length ? features : [...defaults.features];
+  const img = image || defaults.image;
+  const href = link || defaults.link;
+  const btnText = linkText || defaults.linkText;
+  const checkColor = isProduct ? "text-[var(--secondary,#2563EB)]" : "text-emerald-600";
+  const cardTone = isProduct
+    ? "border-[#C5DBF5]/70 bg-gradient-to-br from-[#F4F8FF] via-white to-[#FAFCFF]"
+    : "border-emerald-200/70 bg-gradient-to-br from-[#F2FBF7] via-white to-[#FAFFFC]";
 
   return (
     <motion.article
@@ -73,86 +114,69 @@ function PillarCard({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ delay: index * 0.1, duration: 0.45 }}
-      className="group relative flex h-full flex-col overflow-hidden rounded-[1.75rem] border border-slate-200/70 bg-white shadow-[0_8px_40px_rgba(10,42,139,0.07)] transition-all duration-400 hover:-translate-y-1.5 hover:border-[var(--secondary,#2563EB)]/20 hover:shadow-[0_24px_60px_rgba(45,127,249,0.14)]"
+      className={`group flex flex-col overflow-hidden rounded-2xl border shadow-[0_4px_24px_rgba(10,42,139,0.06)] transition-shadow duration-300 hover:shadow-[0_12px_40px_rgba(10,42,139,0.1)] md:min-h-[380px] md:flex-row md:items-stretch lg:min-h-[400px] ${cardTone}`}
     >
-      <div
-        className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${accentBar} opacity-80 transition group-hover:opacity-100`}
-      />
-      <div
-        className={`pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full ${glow} blur-3xl transition duration-500 group-hover:scale-110`}
-      />
-
-      {image && (
-        <div className="relative m-4 mb-0 aspect-[2.2/1] overflow-hidden rounded-2xl sm:m-5 sm:mb-0">
-          <Image
-            src={image}
-            alt={title}
-            fill
-            className="object-cover transition-transform duration-700 group-hover:scale-[1.04]"
-            sizes="50vw"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-[var(--primary,#0A2A8B)]/55 via-transparent to-transparent" />
-        </div>
-      )}
-
-      <div className="relative flex flex-1 flex-col p-5 sm:p-6 lg:p-7">
-        <div className="mb-5 flex items-start justify-between gap-4">
-          <div className="flex items-start gap-4">
+      <div className="flex min-w-0 flex-1 flex-col justify-between p-6 md:max-w-[54%] md:p-7 lg:p-8">
+        <div>
+          <div className="mb-4 flex items-center gap-2.5">
             <div
-              className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl shadow-lg ${iconWrap} ring-4 ring-white transition duration-300 group-hover:scale-105 sm:h-14 sm:w-14`}
+              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
+                isProduct ? "bg-[#E8F1FC] text-[var(--secondary,#2563EB)]" : "bg-emerald-50 text-emerald-600"
+              }`}
             >
-              <Icon className="h-6 w-6 text-white" />
+              <Icon className="h-[18px] w-[18px]" strokeWidth={1.75} />
             </div>
-            <div className="min-w-0 pt-0.5">
-              <span
-                className={`text-[10px] font-bold uppercase tracking-[0.16em] ${
-                  isProduct ? "text-[var(--secondary,#2563EB)]" : "text-emerald-600"
-                }`}
-              >
-                {label}
-              </span>
-              <h3 className="mt-1 text-lg font-bold leading-snug tracking-tight text-[var(--primary,#0A2A8B)] sm:text-xl">
-                {title}
-              </h3>
-            </div>
+            <h3 className="text-lg font-bold text-[var(--primary,#0A2A8B)]">{label}</h3>
           </div>
-          <span className="shrink-0 font-mono text-3xl font-extralight text-slate-200/90 sm:text-4xl">{num}</span>
-        </div>
 
-        {description && (
-          <p className="mb-5 text-sm leading-relaxed text-slate-500">{description}</p>
-        )}
+          <p className="max-w-md text-sm leading-relaxed text-slate-600 md:text-[15px]">{desc}</p>
 
-        {features.length > 0 && (
-          <div className="rounded-2xl border border-slate-100 bg-gradient-to-br from-slate-50/90 to-white p-4 sm:p-5">
-            <ul className="space-y-3">
-              {features.map((f) => (
-                <li key={f} className="flex items-start gap-3 text-sm text-slate-700">
-                  <span
-                    className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${checkBg}`}
-                  >
-                    <CheckCircle2 className="h-3 w-3" />
-                  </span>
+          {isProduct ? (
+            <ul className="mt-5 grid grid-cols-1 gap-y-2.5 sm:grid-cols-2 sm:gap-x-8">
+              {feats.map((f) => (
+                <li key={f} className="flex items-start gap-2 text-sm text-slate-700">
+                  <CheckCircle2 className={`mt-0.5 h-4 w-4 shrink-0 ${checkColor}`} />
                   <span className="leading-snug">{f}</span>
                 </li>
               ))}
             </ul>
-          </div>
-        )}
+          ) : (
+            <ul className="mt-5 space-y-2.5">
+              {feats.map((f) => (
+                <li key={f} className="flex items-start gap-2 text-sm text-slate-700">
+                  <CheckCircle2 className={`mt-0.5 h-4 w-4 shrink-0 ${checkColor}`} />
+                  <span className="leading-snug">{f}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
 
-        {link && (
-          <Link
-            href={link}
-            className={`mt-6 inline-flex w-fit items-center gap-2 rounded-full border px-5 py-2.5 text-sm font-semibold transition-all ${
-              isProduct
-                ? "border-[var(--secondary,#2563EB)]/25 bg-[var(--secondary,#2563EB)]/[0.06] text-[var(--primary,#0A2A8B)] hover:border-[var(--secondary,#2563EB)]/40 hover:bg-[var(--secondary,#2563EB)]/10"
-                : "border-emerald-500/25 bg-emerald-500/[0.06] text-emerald-800 hover:border-emerald-500/40 hover:bg-emerald-500/10"
-            }`}
-          >
-            {linkText || "Learn more"}
-            <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
-          </Link>
-        )}
+        <Link
+          href={href}
+          className="mt-6 inline-flex w-fit items-center gap-1.5 rounded-lg border border-[var(--secondary,#2563EB)]/45 bg-white px-4 py-2.5 text-sm font-semibold text-[var(--primary,#0A2A8B)] transition hover:bg-[var(--secondary,#2563EB)]/[0.05]"
+        >
+          {btnText}
+          <ArrowRight className="h-4 w-4" />
+        </Link>
+      </div>
+
+      <div
+        className={`relative h-64 w-full shrink-0 overflow-hidden sm:h-72 md:h-auto md:min-h-[380px] md:w-[46%] lg:min-h-[400px] lg:w-[48%] ${
+          isProduct ? "bg-[#EAF2FC]/60" : "bg-slate-100/80"
+        }`}
+      >
+        <Image
+          src={img}
+          alt={title || label}
+          fill
+          className={`transition-transform duration-500 group-hover:scale-[1.04] ${
+            isProduct
+              ? "object-contain object-center p-3 sm:p-4 md:object-right md:p-5"
+              : "object-cover object-center"
+          }`}
+          sizes="(max-width: 768px) 100vw, 48vw"
+        />
       </div>
     </motion.article>
   );
@@ -396,7 +420,14 @@ function SolutionsShowcase({
 
 export function WhySection({ section, whoServeSection }: WhySectionProps) {
   const pillarContent = parseContent<WhyPillarContent>(section.content);
-  const hasPillars = Boolean(pillarContent.productTitle || pillarContent.consultingTitle);
+  const hasPillars = Boolean(
+    pillarContent.productTitle ||
+      pillarContent.consultingTitle ||
+      pillarContent.productDescription ||
+      pillarContent.consultingDescription ||
+      pillarContent.productFeatures?.length ||
+      pillarContent.consultingFeatures?.length
+  );
 
   const cards: WhyCard[] = section.whyCards.length
     ? section.whyCards.map((c) => ({
@@ -413,65 +444,61 @@ export function WhySection({ section, whoServeSection }: WhySectionProps) {
 
   if (!cards.length && !hasPillars) return null;
 
-  const eyebrow = sectionEyebrow(section, "Why Afya Bridge");
+  const pillarEyebrow = pillarContent.eyebrow?.replace(/,$/, ".") || "Two Pillars. One Mission.";
+  const legacyTitles = new Set([
+    "Built for Healthcare Providers Who Care",
+    "Built for healthcare providers who care",
+  ]);
+  const legacySubtitles = new Set([
+    "Practical innovation that improves patient care, efficiency, and trust.",
+  ]);
+  const pillarTitle =
+    !section.title || legacyTitles.has(section.title)
+      ? "Technology + Expertise"
+      : section.title;
+  const pillarSubtitle =
+    !section.subtitle || legacySubtitles.has(section.subtitle)
+      ? "We provide both the platform and the guidance needed to improve healthcare operations."
+      : section.subtitle;
   const ctaText = section.buttonText || "Learn More";
   const ctaLink = section.buttonLink || "#contact";
 
   return (
     <>
-      <section className="relative overflow-hidden pt-14 pb-6 lg:pt-16 lg:pb-8">
-        <div className="pointer-events-none absolute inset-0 bg-mesh" aria-hidden />
-        <div
-          className="pointer-events-none absolute inset-0 opacity-70"
-          style={{
-            background:
-              "radial-gradient(ellipse 80% 60% at 50% -10%, rgba(45,127,249,0.1), transparent 55%), radial-gradient(ellipse 50% 40% at 100% 50%, rgba(0,194,255,0.06), transparent 50%)",
-          }}
-          aria-hidden
-        />
-        <div className="pointer-events-none absolute inset-0 bg-grid opacity-40" aria-hidden />
-
+      <section className="relative overflow-hidden bg-white pt-14 pb-6 lg:pt-16 lg:pb-8">
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <SectionHeader
-            eyebrow={eyebrow}
-            title={section.title || "Built for healthcare providers who care"}
-            subtitle={
-              section.subtitle ||
-              "Practical innovation that improves patient care, efficiency, and trust."
-            }
-          />
-
           {hasPillars && (
-            <div className="relative grid gap-5 lg:grid-cols-2 lg:gap-6">
-              <div
-                className="pointer-events-none absolute left-1/2 top-1/2 hidden h-px w-[calc(100%-4rem)] -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-transparent via-[var(--secondary,#2563EB)]/15 to-transparent lg:block"
-                aria-hidden
+            <>
+              <SectionHeader
+                eyebrow={pillarEyebrow}
+                title={pillarTitle}
+                subtitle={pillarSubtitle}
+                eyebrowStyle="plain"
               />
-              {pillarContent.productTitle && (
+
+              <div className="grid gap-5 lg:grid-cols-2 lg:gap-6">
                 <PillarCard
                   variant="product"
-                  title={pillarContent.productTitle}
+                  title="Our Product"
                   description={pillarContent.productDescription}
-                  features={pillarContent.productFeatures || []}
+                  features={resolvePillarFeatures("product", pillarContent.productFeatures)}
                   image={pillarContent.productImage}
                   link={pillarContent.productLink}
                   linkText={pillarContent.productLinkText}
                   index={0}
                 />
-              )}
-              {pillarContent.consultingTitle && (
                 <PillarCard
                   variant="consulting"
-                  title={pillarContent.consultingTitle}
+                  title="Our Consulting"
                   description={pillarContent.consultingDescription}
-                  features={pillarContent.consultingFeatures || []}
+                  features={resolvePillarFeatures("consulting", pillarContent.consultingFeatures)}
                   image={pillarContent.consultingImage}
                   link={pillarContent.consultingLink}
                   linkText={pillarContent.consultingLinkText}
                   index={1}
                 />
-              )}
-            </div>
+              </div>
+            </>
           )}
 
           {whoServeSection && whoServeSection.industries.length > 0 && (
