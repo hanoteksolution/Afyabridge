@@ -17,8 +17,13 @@ import {
   saveMissionValue, deleteMissionValue,
 } from "@/actions/cms";
 import { toast } from "sonner";
-import { Plus, Trash2, ExternalLink } from "lucide-react";
+import { Plus, Trash2, ExternalLink, Loader2, Save } from "lucide-react";
+import {
+  adminFieldClass,
+  adminTextareaClass,
+} from "@/components/admin/admin-form-panel";
 import { SectionContentFields } from "@/components/admin/section-content-fields";
+import { cn } from "@/lib/utils";
 import { industryIcon, parseBullets, parseIndustryBenefits } from "@/lib/section-content";
 import type { Section, SectionType, TrustStat, WhyCard, Industry, ServiceModule, ApproachStep, MissionValue } from "@prisma/client";
 
@@ -31,7 +36,13 @@ type FullSection = Section & {
   missionValues?: MissionValue[];
 };
 
-export function SectionEditor({ section: initial }: { section: FullSection }) {
+export function SectionEditor({
+  section: initial,
+  accent = "from-[#2563EB] to-[#3b82f6]",
+}: {
+  section: FullSection;
+  accent?: string;
+}) {
   const [section, setSection] = useState(initial);
   const [saving, setSaving] = useState(false);
 
@@ -58,55 +69,112 @@ export function SectionEditor({ section: initial }: { section: FullSection }) {
   }
 
   return (
-    <div className="border-t border-slate-100 bg-slate-50 p-5 space-y-5">
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="sm:col-span-2">
-          <Label>Section Title</Label>
-          <Input value={section.title || ""} onChange={(e) => setField("title", e.target.value)} className="mt-1.5" />
-        </div>
-        <div className="sm:col-span-2">
-          <Label>Subtitle</Label>
-          <Textarea value={section.subtitle || ""} onChange={(e) => setField("subtitle", e.target.value)} className="mt-1.5" rows={2} />
-        </div>
-        {(section.type === "CTA" || section.type === "HERO" || section.type === "PLATFORM_MODULES") && (
-          <>
-            <div>
-              <Label>Primary Button Text</Label>
-              <Input value={section.buttonText || ""} onChange={(e) => setField("buttonText", e.target.value)} className="mt-1.5" />
+    <div className="border-t border-slate-100 bg-gradient-to-b from-slate-50/90 to-white">
+      <div className="space-y-6 p-5 sm:p-6">
+        <div className="rounded-2xl border border-slate-200/70 bg-white p-5 shadow-sm">
+          <h4 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500">
+            Basic content
+          </h4>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <Label className="text-slate-700">Section title</Label>
+              <Input
+                value={section.title || ""}
+                onChange={(e) => setField("title", e.target.value)}
+                className={adminFieldClass}
+              />
             </div>
-            <div>
-              <Label>Primary Button Link</Label>
-              <Input value={section.buttonLink || ""} onChange={(e) => setField("buttonLink", e.target.value)} className="mt-1.5" />
+            <div className="sm:col-span-2">
+              <Label className="text-slate-700">Subtitle</Label>
+              <Textarea
+                value={section.subtitle || ""}
+                onChange={(e) => setField("subtitle", e.target.value)}
+                className={adminTextareaClass}
+                rows={2}
+              />
             </div>
-            <div>
-              <Label>Secondary Button Text</Label>
-              <Input value={section.buttonText2 || ""} onChange={(e) => setField("buttonText2", e.target.value)} className="mt-1.5" />
-            </div>
-            <div>
-              <Label>Secondary Button Link</Label>
-              <Input value={section.buttonLink2 || ""} onChange={(e) => setField("buttonLink2", e.target.value)} className="mt-1.5" />
-            </div>
-          </>
-        )}
-        {section.type === "HERO" && (
-          <div className="sm:col-span-2 rounded-lg border border-blue-200 bg-blue-50 p-4">
-            <p className="text-sm text-blue-800">
-              Hero slides (headlines, images, badges) are managed in{" "}
-              <Link href="/admin/slides" className="font-semibold underline inline-flex items-center gap-1">
-                Hero Slider <ExternalLink className="h-3.5 w-3.5" />
-              </Link>
-            </p>
+            {(section.type === "CTA" ||
+              section.type === "HERO" ||
+              section.type === "PLATFORM_MODULES") && (
+              <>
+                <div>
+                  <Label className="text-slate-700">Primary button text</Label>
+                  <Input
+                    value={section.buttonText || ""}
+                    onChange={(e) => setField("buttonText", e.target.value)}
+                    className={adminFieldClass}
+                  />
+                </div>
+                <div>
+                  <Label className="text-slate-700">Primary button link</Label>
+                  <Input
+                    value={section.buttonLink || ""}
+                    onChange={(e) => setField("buttonLink", e.target.value)}
+                    className={adminFieldClass}
+                  />
+                </div>
+                <div>
+                  <Label className="text-slate-700">Secondary button text</Label>
+                  <Input
+                    value={section.buttonText2 || ""}
+                    onChange={(e) => setField("buttonText2", e.target.value)}
+                    className={adminFieldClass}
+                  />
+                </div>
+                <div>
+                  <Label className="text-slate-700">Secondary button link</Label>
+                  <Input
+                    value={section.buttonLink2 || ""}
+                    onChange={(e) => setField("buttonLink2", e.target.value)}
+                    className={adminFieldClass}
+                  />
+                </div>
+              </>
+            )}
+            {section.type === "HERO" && (
+              <div className="sm:col-span-2 rounded-xl border border-blue-200/80 bg-gradient-to-r from-blue-50 to-indigo-50/50 p-4">
+                <p className="text-sm text-blue-900">
+                  Hero slides (headlines, images, badges) are managed in{" "}
+                  <Link
+                    href="/admin/slides"
+                    className="inline-flex items-center gap-1 font-semibold text-[#2563EB] underline-offset-2 hover:underline"
+                  >
+                    Hero Slider <ExternalLink className="h-3.5 w-3.5" />
+                  </Link>
+                </p>
+              </div>
+            )}
           </div>
-        )}
+        </div>
+
+        <ExternalContentBanner section={section} />
+        <SectionContentFields section={section} onUpdate={setSection} />
+        <NestedEditor section={section} onUpdate={setSection} />
       </div>
 
-      <ExternalContentBanner section={section} />
-      <SectionContentFields section={section} onUpdate={setSection} />
-      <NestedEditor section={section} onUpdate={setSection} />
-
-      <Button onClick={saveBase} disabled={saving}>
-        {saving ? "Saving..." : "Save Section"}
-      </Button>
+      <div className="flex items-center justify-between gap-3 border-t border-slate-100 bg-slate-50/60 px-5 py-4 sm:px-6">
+        <p className="text-xs text-slate-500">Changes apply after saving this section</p>
+        <Button
+          onClick={saveBase}
+          disabled={saving}
+          className={cn(
+            "rounded-xl bg-gradient-to-r text-white shadow-md",
+            accent
+          )}
+        >
+          {saving ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Saving…
+            </>
+          ) : (
+            <>
+              <Save className="h-4 w-4" />
+              Save section
+            </>
+          )}
+        </Button>
+      </div>
     </div>
   );
 }
@@ -124,10 +192,13 @@ function ExternalContentBanner({ section }: { section: FullSection }) {
   const link = links[section.type as SectionType];
   if (!link) return null;
   return (
-    <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
-      <p className="text-sm text-amber-900">
+    <div className="rounded-xl border border-amber-200/80 bg-gradient-to-r from-amber-50 to-orange-50/40 p-4">
+      <p className="text-sm text-amber-950">
         {link.hint}{" "}
-        <Link href={link.href} className="font-semibold underline inline-flex items-center gap-1">
+        <Link
+          href={link.href}
+          className="inline-flex items-center gap-1 font-semibold text-amber-900 underline-offset-2 hover:underline"
+        >
           Open {link.label} <ExternalLink className="h-3.5 w-3.5" />
         </Link>
       </p>
@@ -163,7 +234,7 @@ function TrustStatsEditor({ section, onUpdate }: { section: FullSection; onUpdat
       toast.success("Stat added — refresh to see ID");
     }}>
       {items.map((item) => (
-        <div key={item.id} className="grid gap-2 sm:grid-cols-4 rounded-lg border bg-white p-3">
+        <div key={item.id} className="grid gap-2 rounded-xl border border-slate-200/70 bg-white p-4 shadow-sm sm:grid-cols-4">
           <Input placeholder="Label" defaultValue={item.label} onBlur={(e) => saveTrustStat(section.id, item.id, { label: e.target.value, value: item.value, suffix: item.suffix || undefined, icon: item.icon || undefined })} />
           <Input type="number" placeholder="Value" defaultValue={item.value} onBlur={(e) => saveTrustStat(section.id, item.id, { label: item.label, value: parseInt(e.target.value) || 0, suffix: item.suffix || undefined, icon: item.icon || undefined })} />
           <Input placeholder="Suffix" defaultValue={item.suffix || ""} onBlur={(e) => saveTrustStat(section.id, item.id, { label: item.label, value: item.value, suffix: e.target.value, icon: item.icon || undefined })} />
@@ -182,7 +253,7 @@ function WhyCardsEditor({ section, onUpdate }: { section: FullSection; onUpdate:
       toast.success("Card added");
     }}>
       {items.map((item) => (
-        <div key={item.id} className="rounded-lg border bg-white p-3 space-y-2">
+        <div key={item.id} className="space-y-2 rounded-xl border border-slate-200/70 bg-white p-4 shadow-sm">
           <Input placeholder="Title" defaultValue={item.title} onBlur={(e) => saveWhyCard(section.id, item.id, { title: e.target.value, description: item.description || "", icon: item.icon || undefined, image: item.image || undefined, metricValue: item.metricValue || undefined, metricLabel: item.metricLabel || undefined, bullets: (item.bullets as string[]) || undefined })} />
           <Textarea placeholder="Description" defaultValue={item.description || ""} rows={2} onBlur={(e) => saveWhyCard(section.id, item.id, { title: item.title, description: e.target.value, icon: item.icon || undefined, image: item.image || undefined, metricValue: item.metricValue || undefined, metricLabel: item.metricLabel || undefined, bullets: (item.bullets as string[]) || undefined })} />
           <Input placeholder="Icon (Lucide)" defaultValue={item.icon || ""} onBlur={(e) => saveWhyCard(section.id, item.id, { title: item.title, description: item.description || "", icon: e.target.value, image: item.image || undefined, metricValue: item.metricValue || undefined, metricLabel: item.metricLabel || undefined, bullets: (item.bullets as string[]) || undefined })} />
@@ -209,7 +280,7 @@ function IndustriesEditor({ section, onUpdate }: { section: FullSection; onUpdat
       {items.map((item) => {
         const parsed = parseIndustryBenefits(item.benefits);
         return (
-        <div key={item.id} className="rounded-lg border bg-white p-3 space-y-2">
+        <div key={item.id} className="space-y-2 rounded-xl border border-slate-200/70 bg-white p-4 shadow-sm">
           <div className="grid gap-2 sm:grid-cols-3">
             <Input placeholder="Name" defaultValue={item.name} onBlur={(e) => saveIndustry(section.id, item.id, { name: e.target.value, slug: item.slug, description: item.description || "", image: item.image || undefined, icon: parsed.icon, benefits: parsed.items, statValue: parsed.stat?.v, statLabel: parsed.stat?.l, ctaLink: item.ctaLink || undefined })} />
             <Input placeholder="Slug" defaultValue={item.slug} onBlur={(e) => saveIndustry(section.id, item.id, { name: item.name, slug: e.target.value, description: item.description || "", image: item.image || undefined, icon: parsed.icon, benefits: parsed.items, statValue: parsed.stat?.v, statLabel: parsed.stat?.l, ctaLink: item.ctaLink || undefined })} />
@@ -242,7 +313,7 @@ function ModulesEditor({ section, onUpdate }: { section: FullSection; onUpdate: 
       toast.success("Module added");
     }}>
       {items.map((item) => (
-        <div key={item.id} className="rounded-lg border bg-white p-3 space-y-2">
+        <div key={item.id} className="space-y-2 rounded-xl border border-slate-200/70 bg-white p-4 shadow-sm">
           <div className="grid gap-2 sm:grid-cols-2">
             <Input placeholder="Name" defaultValue={item.name} onBlur={(e) => saveServiceModule(section.id, item.id, { name: e.target.value, slug: item.slug, description: item.description || "", icon: item.icon || undefined })} />
             <Input placeholder="Icon (Lucide name)" defaultValue={item.icon || ""} onBlur={(e) => saveServiceModule(section.id, item.id, { name: item.name, slug: item.slug, description: item.description || "", icon: e.target.value })} />
@@ -277,7 +348,7 @@ function StepsEditor({ section, onUpdate }: { section: FullSection; onUpdate: (s
       toast.success("Step added");
     }}>
       {items.map((item) => (
-        <div key={item.id} className="rounded-lg border bg-white p-3 space-y-2">
+        <div key={item.id} className="space-y-2 rounded-xl border border-slate-200/70 bg-white p-4 shadow-sm">
           <div className="grid gap-2 sm:grid-cols-2">
             <Input placeholder="Title" defaultValue={item.title} onBlur={(e) => saveApproachStep(section.id, item.id, { title: e.target.value, description: item.description || "", icon: item.icon || undefined })} />
             <Input placeholder="Icon (Lucide)" defaultValue={item.icon || ""} onBlur={(e) => saveApproachStep(section.id, item.id, { title: item.title, description: item.description || "", icon: e.target.value })} />
@@ -298,7 +369,7 @@ function MissionEditor({ section, onUpdate }: { section: FullSection; onUpdate: 
       toast.success("Value added");
     }}>
       {items.map((item) => (
-        <div key={item.id} className="rounded-lg border bg-white p-3 space-y-2">
+        <div key={item.id} className="space-y-2 rounded-xl border border-slate-200/70 bg-white p-4 shadow-sm">
           <div className="grid gap-2 sm:grid-cols-2">
             <Input placeholder="Type (mission/vision/value)" defaultValue={item.type} onBlur={(e) => saveMissionValue(section.id, item.id, { type: e.target.value, title: item.title, content: item.content || "" })} />
             <Input placeholder="Title" defaultValue={item.title} onBlur={(e) => saveMissionValue(section.id, item.id, { type: item.type, title: e.target.value, content: item.content || "" })} />
@@ -311,14 +382,29 @@ function MissionEditor({ section, onUpdate }: { section: FullSection; onUpdate: 
   );
 }
 
-function ItemList({ title, onAdd, children }: { title: string; onAdd: () => void; children: React.ReactNode }) {
+function ItemList({
+  title,
+  onAdd,
+  children,
+}: {
+  title: string;
+  onAdd: () => void;
+  children: React.ReactNode;
+}) {
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
+    <div className="rounded-2xl border border-slate-200/70 bg-white p-5 shadow-sm">
+      <div className="mb-4 flex items-center justify-between gap-3">
         <h5 className="text-sm font-semibold text-[#0A1F78]">{title}</h5>
-        <Button variant="outline" size="sm" onClick={onAdd}><Plus className="h-3.5 w-3.5 mr-1" /> Add</Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onAdd}
+          className="rounded-xl border-slate-200/80"
+        >
+          <Plus className="mr-1 h-3.5 w-3.5" /> Add item
+        </Button>
       </div>
-      <div className="space-y-2">{children}</div>
+      <div className="space-y-3">{children}</div>
     </div>
   );
 }

@@ -1,22 +1,33 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  LayoutDashboard, FileText, Layers, Image, Search, Menu,
+  LayoutDashboard, FileText, Layers, Image as ImageIcon, Search, Menu,
   Settings, Users, Shield, Activity, MessageSquare, BookOpen,
   Star, Briefcase, LogOut, ChevronLeft, ChevronRight, GalleryHorizontal, HelpCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { signOut } from "next-auth/react";
 import { useState } from "react";
+import { SiteLogo } from "@/components/website/site-logo";
+
+function brandInitials(name: string) {
+  return name
+    .split(/\s+/)
+    .map((word) => word[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
 
 const navItems = [
   { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/pages", label: "Pages", icon: FileText },
   { href: "/admin/sections", label: "Sections", icon: Layers },
   { href: "/admin/slides", label: "Hero Slider", icon: GalleryHorizontal },
-  { href: "/admin/media", label: "Media Library", icon: Image },
+  { href: "/admin/media", label: "Media Library", icon: ImageIcon },
   { href: "/admin/seo", label: "SEO Manager", icon: Search },
   { href: "/admin/menus", label: "Menu Builder", icon: Menu },
   { href: "/admin/blogs", label: "Blog", icon: BookOpen },
@@ -30,7 +41,13 @@ const navItems = [
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 
-export function AdminSidebar() {
+export function AdminSidebar({
+  siteName,
+  siteLogo,
+}: {
+  siteName: string;
+  siteLogo?: string;
+}) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
 
@@ -41,18 +58,49 @@ export function AdminSidebar() {
         collapsed ? "w-16" : "w-64"
       )}
     >
-      <div className="flex h-16 items-center justify-between border-b border-slate-200 px-4">
-        {!collapsed && (
-          <Link href="/admin/dashboard" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#0A1F78] to-[#2563EB]">
-              <span className="text-xs font-bold text-white">AB</span>
-            </div>
-            <span className="font-semibold text-[#0A1F78]">Admin</span>
-          </Link>
+      <div
+        className={cn(
+          "flex border-b border-slate-200 px-3",
+          collapsed ? "h-[4.5rem] flex-col items-center justify-center gap-1 py-2" : "h-16 items-center justify-between"
         )}
+      >
+        <Link
+          href="/admin/dashboard"
+          className={cn("flex min-w-0 items-center", !collapsed && "flex-1")}
+          title={siteName}
+        >
+          {collapsed ? (
+            siteLogo ? (
+              <Image
+                src={siteLogo}
+                alt={siteName}
+                width={32}
+                height={32}
+                className="h-8 w-8 object-contain"
+              />
+            ) : (
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#0A1F78] to-[#2563EB]">
+                <span className="text-xs font-bold text-white">{brandInitials(siteName)}</span>
+              </div>
+            )
+          ) : (
+            <div className="min-w-0 pr-2">
+              <SiteLogo
+                name={siteName}
+                logoUrl={siteLogo}
+                showTagline={false}
+                className="max-w-[11rem]"
+              />
+              <span className="mt-0.5 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                Admin
+              </span>
+            </div>
+          )}
+        </Link>
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="rounded-lg p-1.5 hover:bg-slate-100"
+          className={cn("shrink-0 rounded-lg p-1.5 hover:bg-slate-100", collapsed && "p-1")}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
         </button>

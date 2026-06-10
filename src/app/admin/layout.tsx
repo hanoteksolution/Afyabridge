@@ -4,12 +4,16 @@ import { SessionProvider } from "next-auth/react";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "sonner";
 import { AdminShell } from "@/components/admin/admin-shell";
+import { getSettings } from "@/lib/cms";
+import { parseSiteSettings } from "@/lib/site-settings";
 
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const settings = parseSiteSettings(await getSettings());
+
   return (
     <SessionProvider>
       <ThemeProvider
@@ -20,7 +24,12 @@ export default function AdminLayout({
         enableColorScheme={false}
         disableTransitionOnChange
       >
-        <AdminShell>{children}</AdminShell>
+        <AdminShell
+          siteName={settings.site_name}
+          siteLogo={settings.site_logo || undefined}
+        >
+          {children}
+        </AdminShell>
         <Toaster position="top-right" richColors />
       </ThemeProvider>
     </SessionProvider>

@@ -703,6 +703,7 @@ async function main() {
     { key: "site_tagline", value: "The healthcare-software partner for East African clinics and hospitals, delivering local expertise and patient-centric design so providers can focus on care, not IT.", group: "branding" },
     { key: "site_logo", value: "", group: "branding" },
     { key: "site_logo_dark", value: "", group: "branding" },
+    { key: "site_favicon", value: "", group: "branding" },
     { key: "color_primary", value: "#0A2A8B", group: "theme" },
     { key: "color_secondary", value: "#2563EB", group: "theme" },
     { key: "color_accent", value: "#00C2FF", group: "theme" },

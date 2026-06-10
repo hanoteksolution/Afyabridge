@@ -1,16 +1,18 @@
-import { prisma } from "@/lib/prisma";
 import { AdminHeader } from "@/components/admin/header";
-import { StatsCard } from "@/components/admin/stats-card";
+import { AdminStatsRow } from "@/components/admin/admin-stats-row";
 import { DataTable } from "@/components/admin/data-table";
 import { Badge } from "@/components/ui/badge";
-import {
-  Users, MessageSquare, FileText, Eye,
-  TrendingUp, Calendar,
-} from "lucide-react";
 import { format } from "date-fns";
 import { DashboardChart } from "@/components/admin/dashboard-chart";
+import { DashboardWelcome } from "@/components/admin/dashboard-welcome";
+import { DashboardQuickStats } from "@/components/admin/dashboard-quick-stats";
+import { DashboardPanel } from "@/components/admin/dashboard-panel";
+import { withDbRetry } from "@/lib/prisma";
+import { auth } from "@/lib/auth";
 
 export default async function DashboardPage() {
+  const session = await auth();
+
   const [
     contactCount,
     demoCount,
@@ -19,56 +21,94 @@ export default async function DashboardPage() {
     recentContacts,
     recentActivity,
     newsletterCount,
-  ] = await Promise.all([
-    prisma.contact.count(),
-    prisma.contact.count({ where: { requestDemo: true } }),
-    prisma.page.count(),
-    prisma.blogPost.count({ where: { isPublished: true } }),
-    prisma.contact.findMany({ orderBy: { createdAt: "desc" }, take: 5 }),
-    prisma.activityLog.findMany({
-      orderBy: { createdAt: "desc" },
-      take: 8,
-      include: { user: true },
-    }),
-    prisma.newsletterSubscriber.count({ where: { isActive: true } }),
-  ]);
+  ] = await withDbRetry((prisma) =>
+    Promise.all([
+      prisma.contact.count(),
+      prisma.contact.count({ where: { requestDemo: true } }),
+      prisma.page.count(),
+      prisma.blogPost.count({ where: { isPublished: true } }),
+      prisma.contact.findMany({ orderBy: { createdAt: "desc" }, take: 5 }),
+      prisma.activityLog.findMany({
+        orderBy: { createdAt: "desc" },
+        take: 8,
+        include: { user: true },
+      }),
+      prisma.newsletterSubscriber.count({ where: { isActive: true } }),
+    ])
+  );
 
   return (
-    <div>
+    <div className="min-h-screen">
       <AdminHeader title="Dashboard" />
-      <div className="p-6 space-y-6">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatsCard title="Total Leads" value={contactCount} icon={MessageSquare} change="+12% this month" trend="up" />
-          <StatsCard title="Demo Requests" value={demoCount} icon={Calendar} change="+8% this month" trend="up" />
-          <StatsCard title="Published Pages" value={pageCount} icon={FileText} />
-          <StatsCard title="Newsletter Subscribers" value={newsletterCount} icon={Users} change="+24 new" trend="up" />
-        </div>
+      <div className="space-y-6 p-6 lg:p-8">
+        <DashboardWelcome
+          name={session?.user?.name}
+          leadCount={contactCount}
+          pageCount={pageCount}
+        />
 
-        <div className="grid gap-6 lg:grid-cols-2">
-          <DashboardChart />
-          <div className="rounded-xl border border-slate-200/80 bg-white p-6">
-            <h3 className="text-lg font-semibold text-[#0A1F78] mb-4">Quick Stats</h3>
-            <div className="space-y-4">
-              {[
-                { label: "Published Blog Posts", value: blogCount, icon: FileText },
-                { label: "Page Views (30d)", value: "12.4K", icon: Eye },
-                { label: "Conversion Rate", value: "3.2%", icon: TrendingUp },
-              ].map((stat) => (
-                <div key={stat.label} className="flex items-center justify-between rounded-lg bg-slate-50 p-3">
-                  <div className="flex items-center gap-3">
-                    <stat.icon className="h-4 w-4 text-[#2563EB]" />
-                    <span className="text-sm text-slate-600">{stat.label}</span>
-                  </div>
-                  <span className="font-semibold text-[#0A1F78]">{stat.value}</span>
-                </div>
-              ))}
-            </div>
+        <AdminStatsRow
+          stats={[
+            {
+              title: "Total Leads",
+              value: contactCount,
+              icon: "MessageSquare",
+              change: "+12% this month",
+              trend: "up",
+              variant: "blue",
+            },
+            {
+              title: "Demo Requests",
+              value: demoCount,
+              icon: "Calendar",
+              change: "+8% this month",
+              trend: "up",
+              variant: "cyan",
+            },
+            {
+              title: "Published Pages",
+              value: pageCount,
+              icon: "FileText",
+              variant: "indigo",
+            },
+            {
+              title: "Newsletter Subscribers",
+              value: newsletterCount,
+              icon: "Users",
+              change: "+24 new",
+              trend: "up",
+              variant: "emerald",
+            },
+          ]}
+        />
+
+        <div className="grid gap-6 xl:grid-cols-5">
+          <div className="xl:col-span-3">
+            <DashboardChart />
+          </div>
+          <div className="xl:col-span-2">
+            <DashboardPanel
+              title="Quick Stats"
+              description="Content and engagement snapshot"
+              delay={0.28}
+            >
+              <DashboardQuickStats
+                stats={[
+                  { label: "Published Blog Posts", value: blogCount, icon: "FileText" },
+                  { label: "Page Views (30d)", value: "12.4K", icon: "Eye" },
+                  { label: "Conversion Rate", value: "3.2%", icon: "TrendingUp" },
+                ]}
+              />
+            </DashboardPanel>
           </div>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-2">
-          <div>
-            <h3 className="text-lg font-semibold text-[#0A1F78] mb-4">Recent Leads</h3>
+        <div className="grid gap-6 xl:grid-cols-2">
+          <DashboardPanel
+            title="Recent Leads"
+            description="Latest inbound contact submissions"
+            delay={0.36}
+          >
             <DataTable
               columns={[
                 { key: "name", label: "Name" },
@@ -91,9 +131,13 @@ export default async function DashboardPage() {
               data={recentContacts}
               emptyMessage="No leads yet"
             />
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold text-[#0A1F78] mb-4">Recent Activity</h3>
+          </DashboardPanel>
+
+          <DashboardPanel
+            title="Recent Activity"
+            description="Latest CMS changes across your workspace"
+            delay={0.42}
+          >
             <DataTable
               columns={[
                 {
@@ -112,13 +156,14 @@ export default async function DashboardPage() {
                 {
                   key: "createdAt",
                   label: "Time",
-                  render: (item) => format(new Date(item.createdAt), "MMM d, HH:mm"),
+                  render: (item) =>
+                    format(new Date(item.createdAt), "MMM d, HH:mm"),
                 },
               ]}
               data={recentActivity}
               emptyMessage="No activity yet"
             />
-          </div>
+          </DashboardPanel>
         </div>
       </div>
     </div>

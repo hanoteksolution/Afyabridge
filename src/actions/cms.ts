@@ -332,6 +332,15 @@ export async function deleteFAQ(id: string) {
   return { success: true };
 }
 
+export async function reorderFAQs(faqIds: string[]) {
+  await requireAuth();
+  await Promise.all(
+    faqIds.map((id, order) => prisma.fAQ.update({ where: { id }, data: { order } }))
+  );
+  revalidateSite(["/faq"]);
+  return { success: true };
+}
+
 // ─── Blog ────────────────────────────────────────────────────────────────────
 
 export async function saveBlogPost(
@@ -411,6 +420,17 @@ export async function deleteTestimonial(id: string) {
   return { success: true };
 }
 
+export async function reorderTestimonials(testimonialIds: string[]) {
+  await requireAuth();
+  await Promise.all(
+    testimonialIds.map((id, order) =>
+      prisma.testimonial.update({ where: { id }, data: { order } })
+    )
+  );
+  revalidateSite();
+  return { success: true };
+}
+
 // ─── Case Studies ────────────────────────────────────────────────────────────
 
 export async function saveCaseStudy(
@@ -430,6 +450,17 @@ export async function deleteCaseStudy(id: string) {
   const session = await requireAuth();
   await prisma.caseStudy.delete({ where: { id } });
   await logActivity({ userId: session.user.id, action: "DELETE", entity: "CaseStudy", entityId: id });
+  revalidateSite();
+  return { success: true };
+}
+
+export async function reorderCaseStudies(caseStudyIds: string[]) {
+  await requireAuth();
+  await Promise.all(
+    caseStudyIds.map((id, order) =>
+      prisma.caseStudy.update({ where: { id }, data: { order } })
+    )
+  );
   revalidateSite();
   return { success: true };
 }
@@ -489,7 +520,7 @@ export async function updateSetting(key: string, value: unknown, group?: string)
 export async function saveSettings(data: Record<string, string>) {
   const session = await requireAuth();
   const groups: Record<string, string> = {
-    site_name: "branding", site_tagline: "branding", site_logo: "branding", site_logo_dark: "branding",
+    site_name: "branding", site_tagline: "branding", site_logo: "branding", site_logo_dark: "branding", site_favicon: "branding",
     color_primary: "theme", color_secondary: "theme", color_accent: "theme", color_hero_bg: "theme",
     contact_email: "contact", phone_ke: "contact", phone_tz: "contact", address: "contact", region: "contact",
     contact_response_title: "contact", contact_response_subtitle: "contact",

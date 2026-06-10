@@ -1,36 +1,52 @@
-import { prisma } from "@/lib/prisma";
+import { redirect } from "next/navigation";
 import { AdminHeader } from "@/components/admin/header";
-import { DataTable } from "@/components/admin/data-table";
-import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
+import {
+  UsersAdminView,
+  type UserRow,
+  type RoleOption,
+} from "@/components/admin/users-admin-view";
+import { auth } from "@/lib/auth";
+import { withDbRetry } from "@/lib/prisma";
+
+export const dynamic = "force-dynamic";
 
 export default async function UsersAdminPage() {
-  const users = await prisma.user.findMany({
-    include: { role: true },
-    orderBy: { createdAt: "desc" },
-  });
+  const session = await auth();
+  if (!session?.user?.id) redirect("/admin/login");
+
+  const [users, roles] = await withDbRetry((prisma) =>
+    Promise.all([
+      prisma.user.findMany({
+        include: { role: { select: { id: true, name: true, slug: true } } },
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.role.findMany({
+        select: { id: true, name: true, slug: true },
+        orderBy: { name: "asc" },
+      }),
+    ])
+  );
+
+  const rows: UserRow[] = users.map((u) => ({
+    id: u.id,
+    name: u.name,
+    email: u.email,
+    roleId: u.roleId,
+    role: u.role,
+    isActive: u.isActive,
+    createdAt: u.createdAt.toISOString(),
+  }));
+
+  const roleOptions: RoleOption[] = roles;
 
   return (
-    <div>
+    <div className="min-h-screen">
       <AdminHeader title="Users" />
-      <div className="p-6">
-        <DataTable
-          columns={[
-            { key: "name", label: "Name" },
-            { key: "email", label: "Email" },
-            { key: "role", label: "Role", render: (u) => <Badge variant="secondary">{u.role.name}</Badge> },
-            {
-              key: "isActive",
-              label: "Status",
-              render: (u) => <Badge variant={u.isActive ? "success" : "outline"}>{u.isActive ? "Active" : "Inactive"}</Badge>,
-            },
-            {
-              key: "createdAt",
-              label: "Joined",
-              render: (u) => format(new Date(u.createdAt), "MMM d, yyyy"),
-            },
-          ]}
-          data={users}
+      <div className="p-6 lg:p-8">
+        <UsersAdminView
+          users={rows}
+          roles={roleOptions}
+          currentUserId={session.user.id}
         />
       </div>
     </div>

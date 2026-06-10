@@ -75,6 +75,87 @@ function resolvePillarFeatures(variant: "product" | "consulting", features?: str
   return features;
 }
 
+function PillarImagePanel({
+  src,
+  alt,
+  variant,
+}: {
+  src: string;
+  alt: string;
+  variant: "product" | "consulting";
+}) {
+  const isProduct = variant === "product";
+
+  return (
+    <div
+      className={`relative order-1 min-h-[220px] w-full shrink-0 overflow-hidden sm:min-h-[260px] md:order-2 md:h-auto md:min-h-[400px] md:w-[44%] lg:min-h-[420px] lg:w-[46%] ${
+        isProduct
+          ? "bg-gradient-to-br from-[#0A1F78] via-[#1e3a8a] to-[#2563EB]"
+          : "bg-gradient-to-br from-slate-800 via-slate-700 to-emerald-900"
+      }`}
+    >
+      {/* Ambient glow */}
+      <div
+        className={`pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full blur-3xl ${
+          isProduct ? "bg-[#00C2FF]/25" : "bg-emerald-400/20"
+        }`}
+      />
+      <div
+        className={`pointer-events-none absolute -bottom-20 -left-10 h-48 w-48 rounded-full blur-3xl ${
+          isProduct ? "bg-[#2563EB]/30" : "bg-teal-400/15"
+        }`}
+      />
+
+      {/* Subtle grid texture */}
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.07]"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255,255,255,.8) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.8) 1px, transparent 1px)",
+          backgroundSize: "28px 28px",
+        }}
+      />
+
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        className={`transition-transform duration-700 ease-out group-hover:scale-[1.06] ${
+          isProduct
+            ? "object-cover object-[62%_48%]"
+            : "object-cover object-[58%_32%]"
+        }`}
+        sizes="(max-width: 768px) 100vw, 46vw"
+      />
+
+      {/* Blend into content column */}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-white via-white/55 to-transparent md:from-white/95 md:via-white/30 md:to-transparent" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent" />
+
+      {/* Inner vignette for depth */}
+      <div className="pointer-events-none absolute inset-0 shadow-[inset_0_0_80px_rgba(10,31,120,0.15)]" />
+
+      {/* Premium frame accent */}
+      <div
+        className={`pointer-events-none absolute inset-3 rounded-2xl border sm:inset-4 ${
+          isProduct ? "border-white/15" : "border-white/20"
+        }`}
+      />
+
+      {/* Floating label */}
+      <div
+        className={`absolute bottom-4 right-4 z-10 rounded-xl px-3.5 py-2 text-xs font-semibold shadow-lg backdrop-blur-md sm:bottom-5 sm:right-5 sm:px-4 sm:py-2.5 sm:text-sm ${
+          isProduct
+            ? "border border-white/20 bg-white/15 text-white"
+            : "border border-emerald-300/25 bg-emerald-500/20 text-white"
+        }`}
+      >
+        {isProduct ? "Platform Preview" : "Expert Guidance"}
+      </div>
+    </div>
+  );
+}
+
 function PillarCard({
   variant,
   title,
@@ -114,9 +195,9 @@ function PillarCard({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ delay: index * 0.1, duration: 0.45 }}
-      className={`group flex flex-col overflow-hidden rounded-2xl border shadow-[0_4px_24px_rgba(10,42,139,0.06)] transition-shadow duration-300 hover:shadow-[0_12px_40px_rgba(10,42,139,0.1)] md:min-h-[380px] md:flex-row md:items-stretch lg:min-h-[400px] ${cardTone}`}
+      className={`group flex flex-col overflow-hidden rounded-2xl border shadow-[0_4px_24px_rgba(10,42,139,0.06)] transition-all duration-300 hover:shadow-[0_16px_48px_rgba(10,42,139,0.12)] md:min-h-[400px] md:flex-row md:items-stretch lg:min-h-[420px] ${cardTone}`}
     >
-      <div className="flex min-w-0 flex-1 flex-col justify-between p-6 md:max-w-[54%] md:p-7 lg:p-8">
+      <div className="order-2 flex min-w-0 flex-1 flex-col justify-between p-6 md:order-1 md:max-w-[56%] md:p-7 lg:p-8">
         <div>
           <div className="mb-4 flex items-center gap-2.5">
             <div
@@ -154,30 +235,18 @@ function PillarCard({
 
         <Link
           href={href}
-          className="mt-6 inline-flex w-fit items-center gap-1.5 rounded-lg border border-[var(--secondary,#2563EB)]/45 bg-white px-4 py-2.5 text-sm font-semibold text-[var(--primary,#0A2A8B)] transition hover:bg-[var(--secondary,#2563EB)]/[0.05]"
+          className={`mt-6 inline-flex w-fit items-center gap-1.5 rounded-xl px-5 py-2.5 text-sm font-semibold shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${
+            isProduct
+              ? "border border-[var(--secondary,#2563EB)]/40 bg-white text-[var(--primary,#0A2A8B)] hover:border-[var(--secondary,#2563EB)]/60 hover:bg-[#F4F8FF]"
+              : "border border-emerald-300/50 bg-white text-[var(--primary,#0A2A8B)] hover:border-emerald-400/60 hover:bg-emerald-50/50"
+          }`}
         >
           {btnText}
-          <ArrowRight className="h-4 w-4" />
+          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
         </Link>
       </div>
 
-      <div
-        className={`relative h-64 w-full shrink-0 overflow-hidden sm:h-72 md:h-auto md:min-h-[380px] md:w-[46%] lg:min-h-[400px] lg:w-[48%] ${
-          isProduct ? "bg-[#EAF2FC]/60" : "bg-slate-100/80"
-        }`}
-      >
-        <Image
-          src={img}
-          alt={title || label}
-          fill
-          className={`transition-transform duration-500 group-hover:scale-[1.04] ${
-            isProduct
-              ? "object-contain object-center p-3 sm:p-4 md:object-right md:p-5"
-              : "object-cover object-center"
-          }`}
-          sizes="(max-width: 768px) 100vw, 48vw"
-        />
-      </div>
+      <PillarImagePanel src={img} alt={title || label} variant={variant} />
     </motion.article>
   );
 }

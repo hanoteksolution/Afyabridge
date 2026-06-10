@@ -1,34 +1,35 @@
-import { prisma } from "@/lib/prisma";
 import { AdminHeader } from "@/components/admin/header";
-import { DataTable } from "@/components/admin/data-table";
-import { Badge } from "@/components/ui/badge";
+import {
+  RolesAdminView,
+  type RoleRow,
+} from "@/components/admin/roles-admin-view";
+import { withDbRetry } from "@/lib/prisma";
+import type { Permission } from "@/lib/constants";
+
+export const dynamic = "force-dynamic";
 
 export default async function RolesAdminPage() {
-  const roles = await prisma.role.findMany({
-    include: { _count: { select: { users: true } } },
-  });
+  const roles = await withDbRetry((prisma) =>
+    prisma.role.findMany({
+      include: { _count: { select: { users: true } } },
+      orderBy: { name: "asc" },
+    })
+  );
+
+  const rows: RoleRow[] = roles.map((role) => ({
+    id: role.id,
+    name: role.name,
+    slug: role.slug,
+    description: role.description,
+    permissions: (role.permissions as Permission[]) || [],
+    userCount: role._count.users,
+  }));
 
   return (
-    <div>
+    <div className="min-h-screen">
       <AdminHeader title="Roles & Permissions" />
-      <div className="p-6">
-        <DataTable
-          columns={[
-            { key: "name", label: "Role" },
-            { key: "slug", label: "Slug", render: (r) => <Badge variant="secondary">{r.slug}</Badge> },
-            { key: "description", label: "Description" },
-            { key: "users", label: "Users", render: (r) => r._count.users },
-            {
-              key: "permissions",
-              label: "Permissions",
-              render: (r) => {
-                const perms = r.permissions as string[];
-                return `${perms.length} permissions`;
-              },
-            },
-          ]}
-          data={roles}
-        />
+      <div className="p-6 lg:p-8">
+        <RolesAdminView roles={rows} />
       </div>
     </div>
   );

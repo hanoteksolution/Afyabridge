@@ -8,9 +8,9 @@ import { getMenuBySlug, getSettings } from "@/lib/cms";
 
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
   const [headerMenu, footerMenu, settings] = await Promise.all([
-    getMenuBySlug("header").catch(() => null),
-    getMenuBySlug("footer").catch(() => null),
-    getSettings().catch(() => ({} as Record<string, unknown>)),
+    getMenuBySlug("header"),
+    getMenuBySlug("footer"),
+    getSettings(),
   ]);
 
   const headerItems = headerMenu?.items.map((item) => ({

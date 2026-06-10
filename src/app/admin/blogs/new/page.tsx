@@ -1,13 +1,20 @@
-import { prisma } from "@/lib/prisma";
 import { AdminHeader } from "@/components/admin/header";
 import { BlogForm } from "@/components/admin/blog-form";
+import { withDbRetry } from "@/lib/prisma";
+
+export const dynamic = "force-dynamic";
 
 export default async function NewBlogPage() {
-  const categories = await prisma.blogCategory.findMany();
+  const categories = await withDbRetry((prisma) =>
+    prisma.blogCategory.findMany({ orderBy: { name: "asc" } })
+  );
+
   return (
-    <div>
+    <div className="min-h-screen">
       <AdminHeader title="New Blog Post" />
-      <div className="p-6"><BlogForm categories={categories} /></div>
+      <div className="p-6 lg:p-8">
+        <BlogForm categories={categories} />
+      </div>
     </div>
   );
 }

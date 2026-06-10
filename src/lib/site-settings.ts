@@ -7,6 +7,7 @@ export type SiteSettings = {
   site_tagline: string;
   site_logo: string;
   site_logo_dark: string;
+  site_favicon: string;
   contact_email: string;
   phone_ke: string;
   phone_tz: string;
@@ -41,6 +42,7 @@ const DEFAULTS: SiteSettings = {
   site_tagline: SITE.positioning,
   site_logo: "",
   site_logo_dark: "",
+  site_favicon: "",
   contact_email: SITE.email,
   phone_ke: SITE.phoneKE,
   phone_tz: SITE.phoneTZ,
@@ -81,6 +83,7 @@ export function parseSiteSettings(raw: Record<string, unknown> = {}): SiteSettin
     site_tagline: str("site_tagline"),
     site_logo: str("site_logo"),
     site_logo_dark: str("site_logo_dark"),
+    site_favicon: str("site_favicon"),
     contact_email: str("contact_email"),
     phone_ke: str("phone_ke"),
     phone_tz: str("phone_tz"),
@@ -124,6 +127,11 @@ export function parseTrustBadges(json: string): TrustBadgeSetting[] {
     /* use defaults */
   }
   return JSON.parse(DEFAULTS.footer_trust_badges) as TrustBadgeSetting[];
+}
+
+export function resolveSiteFavicon(settings: SiteSettings): string | undefined {
+  const url = settings.site_favicon || settings.site_logo;
+  return url || undefined;
 }
 
 export function themeToCssVars(settings: SiteSettings): Record<string, string> {

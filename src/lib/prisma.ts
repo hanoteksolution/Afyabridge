@@ -1,11 +1,15 @@
 import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
+
+export type { PrismaClient };
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
   pgPool: Pool | undefined;
+  dbQueue: Promise<unknown>;
+  resetting: Promise<void> | undefined;
 };
 
 function getConnectionString() {
@@ -29,45 +33,53 @@ function isPoolEnded(pool: Pool) {
   return Boolean((pool as Pool & { ended?: boolean }).ended);
 }
 
-function createPool() {
-  const isDev = process.env.NODE_ENV === "development";
-  return new Pool({
-    connectionString: getConnectionString(),
-    max: isDev ? 5 : 10,
-    idleTimeoutMillis: isDev ? 60_000 : 30_000,
-    connectionTimeoutMillis: isDev ? 30_000 : 10_000,
-    keepAlive: true,
-  });
-}
-
 function getPool() {
   if (!globalForPrisma.pgPool || isPoolEnded(globalForPrisma.pgPool)) {
-    globalForPrisma.pgPool = createPool();
+    const isDev = process.env.NODE_ENV === "development";
+    globalForPrisma.pgPool = new Pool({
+      connectionString: getConnectionString(),
+      // Prisma dev Postgres is fragile under many parallel connections.
+      max: isDev ? 3 : 10,
+      idleTimeoutMillis: isDev ? 30_000 : 30_000,
+      connectionTimeoutMillis: isDev ? 15_000 : 10_000,
+      keepAlive: true,
+    });
   }
   return globalForPrisma.pgPool;
 }
 
 function createPrismaClient() {
-  const adapter = new PrismaPg(getPool());
   return new PrismaClient({
-    adapter,
+    adapter: new PrismaPg(getPool()),
     log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
   });
 }
 
 export function getPrismaClient() {
-  const poolStale =
-    globalForPrisma.pgPool && isPoolEnded(globalForPrisma.pgPool);
-  if (!globalForPrisma.prisma || poolStale) {
-    if (poolStale) resetPrismaClient();
+  if (!globalForPrisma.prisma) {
     globalForPrisma.prisma = createPrismaClient();
   }
   return globalForPrisma.prisma;
 }
 
-export function resetPrismaClient() {
-  globalForPrisma.prisma = undefined;
-  globalForPrisma.pgPool = undefined;
+export async function resetPrismaClient() {
+  if (globalForPrisma.resetting) {
+    await globalForPrisma.resetting;
+    return;
+  }
+
+  globalForPrisma.resetting = (async () => {
+    if (globalForPrisma.prisma) {
+      await globalForPrisma.prisma.$disconnect().catch(() => {});
+    }
+    globalForPrisma.prisma = undefined;
+  })();
+
+  try {
+    await globalForPrisma.resetting;
+  } finally {
+    globalForPrisma.resetting = undefined;
+  }
 }
 
 function isConnectionError(error: unknown) {
@@ -89,27 +101,56 @@ function isConnectionError(error: unknown) {
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-/** Retry after resetting the pool when the DB connection was dropped. */
-export async function withDbRetry<T>(fn: (db: PrismaClient) => Promise<T>): Promise<T> {
-  const maxAttempts = 4;
-  let lastError: unknown;
-
-  for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    try {
-      return await fn(getPrismaClient());
-    } catch (error) {
-      lastError = error;
-      if (!isConnectionError(error) || attempt === maxAttempts - 1) throw error;
-      resetPrismaClient();
-      await sleep(500 * (attempt + 1));
-    }
+/** Serialize DB work in dev — Prisma dev Postgres drops parallel connections. */
+function enqueue<T>(fn: () => Promise<T>): Promise<T> {
+  if (process.env.NODE_ENV !== "development") {
+    return fn();
   }
 
-  throw lastError;
+  const tail = globalForPrisma.dbQueue ?? Promise.resolve();
+  const next = tail.catch(() => {}).then(fn);
+  globalForPrisma.dbQueue = next.catch(() => {});
+  return next;
 }
 
-export const prisma = getPrismaClient();
+/** Retry when the DB connection was dropped. */
+export async function withDbRetry<T>(fn: (db: PrismaClient) => Promise<T>): Promise<T> {
+  return enqueue(async () => {
+    const maxAttempts = 5;
+    let lastError: unknown;
+
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      try {
+        return await fn(getPrismaClient());
+      } catch (error) {
+        lastError = error;
+        if (!isConnectionError(error) || attempt === maxAttempts - 1) throw error;
+        // Wait before retry; only reset the client after the first failure.
+        if (attempt > 0) {
+          await resetPrismaClient();
+        }
+        await sleep(400 * (attempt + 1));
+      }
+    }
+
+    throw lastError;
+  });
+}
+
+/** Always resolves to the current singleton (survives resetPrismaClient). */
+export const prisma = new Proxy({} as PrismaClient, {
+  get(_target, prop) {
+    const client = getPrismaClient();
+    const value = client[prop as keyof PrismaClient];
+    return typeof value === "function"
+      ? (...args: unknown[]) =>
+          enqueue(() =>
+            (value as (...a: unknown[]) => unknown).apply(client, args)
+          )
+      : value;
+  },
+});
 
 if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma;
+  globalForPrisma.prisma = getPrismaClient();
 }
