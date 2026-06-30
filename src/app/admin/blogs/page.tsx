@@ -3,13 +3,13 @@ import {
   BlogsAdminView,
   type BlogRow,
 } from "@/components/admin/blogs-admin-view";
-import { withDbRetry } from "@/lib/prisma";
+import { dbBatch } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
 export default async function BlogsAdminPage() {
-  const [posts, categoryCount] = await withDbRetry((prisma) =>
-    Promise.all([
+  const [posts, categoryCount] = await dbBatch(
+    (prisma) =>
       prisma.blogPost.findMany({
         orderBy: { createdAt: "desc" },
         include: {
@@ -18,8 +18,7 @@ export default async function BlogsAdminPage() {
           _count: { select: { tags: true } },
         },
       }),
-      prisma.blogCategory.count(),
-    ])
+    (prisma) => prisma.blogCategory.count()
   );
 
   const rows: BlogRow[] = posts.map((post) => ({
@@ -38,7 +37,7 @@ export default async function BlogsAdminPage() {
 
   return (
     <div className="min-h-screen">
-      <AdminHeader title="Blog" />
+      <AdminHeader title="Posts" />
       <div className="p-6 lg:p-8">
         <BlogsAdminView posts={rows} categoryCount={categoryCount} />
       </div>

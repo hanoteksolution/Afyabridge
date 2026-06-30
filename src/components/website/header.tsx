@@ -82,16 +82,14 @@ export function Header({
 
   return (
     <header className="sticky top-0 z-[100] w-full">
-      {isHome && (
-        <div
-          className={cn(
-            "overflow-hidden transition-all duration-300",
-            isScrolled ? "max-h-0 opacity-0" : "max-h-20 opacity-100"
-          )}
-        >
-          <TopBar settings={settings} />
-        </div>
-      )}
+      <div
+        className={cn(
+          "overflow-hidden transition-all duration-300",
+          isScrolled ? "max-h-0 opacity-0" : "max-h-20 opacity-100"
+        )}
+      >
+        <TopBar settings={settings} />
+      </div>
 
       <div
         onMouseLeave={() => setOpenMenu(null)}

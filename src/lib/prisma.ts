@@ -33,15 +33,27 @@ function isPoolEnded(pool: Pool) {
   return Boolean((pool as Pool & { ended?: boolean }).ended);
 }
 
+function poolSsl(connectionString: string) {
+  if (
+    process.env.NODE_ENV === "production" ||
+    connectionString.includes("sslmode=require") ||
+    connectionString.includes("ondigitalocean.com")
+  ) {
+    return { rejectUnauthorized: false };
+  }
+  return undefined;
+}
+
 function getPool() {
   if (!globalForPrisma.pgPool || isPoolEnded(globalForPrisma.pgPool)) {
     const isDev = process.env.NODE_ENV === "development";
+    const connectionString = getConnectionString();
     globalForPrisma.pgPool = new Pool({
-      connectionString: getConnectionString(),
-      // Prisma dev Postgres is fragile under many parallel connections.
-      max: isDev ? 3 : 10,
-      idleTimeoutMillis: isDev ? 30_000 : 30_000,
-      connectionTimeoutMillis: isDev ? 15_000 : 10_000,
+      connectionString,
+      ssl: poolSsl(connectionString),
+      max: isDev ? 1 : 10,
+      idleTimeoutMillis: isDev ? 10_000 : 30_000,
+      connectionTimeoutMillis: isDev ? 20_000 : 10_000,
       keepAlive: true,
     });
   }
@@ -73,6 +85,11 @@ export async function resetPrismaClient() {
       await globalForPrisma.prisma.$disconnect().catch(() => {});
     }
     globalForPrisma.prisma = undefined;
+
+    if (globalForPrisma.pgPool) {
+      await globalForPrisma.pgPool.end().catch(() => {});
+      globalForPrisma.pgPool = undefined;
+    }
   })();
 
   try {
@@ -95,7 +112,8 @@ function isConnectionError(error: unknown) {
     message.includes("Connection terminated unexpectedly") ||
     message.includes("pool after calling end") ||
     message.includes("ConnectionClosed") ||
-    message.includes("timeout exceeded")
+    message.includes("timeout exceeded") ||
+    message.includes("Connection terminated unexpectedly")
   );
 }
 
@@ -107,10 +125,26 @@ function enqueue<T>(fn: () => Promise<T>): Promise<T> {
     return fn();
   }
 
-  const tail = globalForPrisma.dbQueue ?? Promise.resolve();
-  const next = tail.catch(() => {}).then(fn);
-  globalForPrisma.dbQueue = next.catch(() => {});
+  const run = globalForPrisma.dbQueue ?? Promise.resolve();
+  const next = run.then(fn, fn);
+  globalForPrisma.dbQueue = next.then(
+    () => undefined,
+    () => undefined
+  );
   return next;
+}
+
+/** Run multiple queries on one connection — avoids parallel queries that crash Prisma dev. */
+export async function dbBatch<T extends readonly unknown[]>(
+  ...fns: { [K in keyof T]: (db: PrismaClient) => Promise<T[K]> }
+): Promise<T> {
+  return withDbRetry(async (prisma) => {
+    const results: unknown[] = [];
+    for (const fn of fns) {
+      results.push(await fn(prisma));
+    }
+    return results as unknown as T;
+  });
 }
 
 /** Retry when the DB connection was dropped. */
@@ -125,10 +159,7 @@ export async function withDbRetry<T>(fn: (db: PrismaClient) => Promise<T>): Prom
       } catch (error) {
         lastError = error;
         if (!isConnectionError(error) || attempt === maxAttempts - 1) throw error;
-        // Wait before retry; only reset the client after the first failure.
-        if (attempt > 0) {
-          await resetPrismaClient();
-        }
+        await resetPrismaClient();
         await sleep(400 * (attempt + 1));
       }
     }
@@ -145,7 +176,9 @@ export const prisma = new Proxy({} as PrismaClient, {
     return typeof value === "function"
       ? (...args: unknown[]) =>
           enqueue(() =>
-            (value as (...a: unknown[]) => unknown).apply(client, args)
+            Promise.resolve(
+              (value as (...a: unknown[]) => unknown).apply(client, args)
+            )
           )
       : value;
   },

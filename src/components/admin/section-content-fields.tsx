@@ -320,6 +320,7 @@ export function SectionContentFields({
             >
               <option value="PAGE_HEADER">Page Header (inner page hero)</option>
               <option value="CONSULTING">Consulting Services (homepage block)</option>
+              <option value="CONTENT">Page Content (privacy, terms, text pages)</option>
               <option value="FAQ">FAQ List (full page)</option>
             </select>
           </div>
@@ -329,6 +330,13 @@ export function SectionContentFields({
             </p>
           ) : c.variant === "CONSULTING" ? (
             <ConsultingServicesFields section={section} onUpdate={onUpdate} />
+          ) : c.variant === "CONTENT" ? (
+            <Textarea
+              placeholder="Page body (HTML allowed — paragraphs, headings, lists)"
+              value={(c as { body?: string }).body || ""}
+              rows={12}
+              onChange={(e) => updateContent(section, onUpdate, { body: e.target.value })}
+            />
           ) : (
             <>
               <Input

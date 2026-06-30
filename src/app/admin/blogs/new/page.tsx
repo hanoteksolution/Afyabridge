@@ -11,7 +11,7 @@ export default async function NewBlogPage() {
 
   return (
     <div className="min-h-screen">
-      <AdminHeader title="New Blog Post" />
+      <AdminHeader title="Add new post" />
       <div className="p-6 lg:p-8">
         <BlogForm categories={categories} />
       </div>

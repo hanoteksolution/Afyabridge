@@ -6,7 +6,7 @@ import {
   type RoleOption,
 } from "@/components/admin/users-admin-view";
 import { auth } from "@/lib/auth";
-import { withDbRetry } from "@/lib/prisma";
+import { dbBatch } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
@@ -14,17 +14,17 @@ export default async function UsersAdminPage() {
   const session = await auth();
   if (!session?.user?.id) redirect("/admin/login");
 
-  const [users, roles] = await withDbRetry((prisma) =>
-    Promise.all([
+  const [users, roles] = await dbBatch(
+    (prisma) =>
       prisma.user.findMany({
         include: { role: { select: { id: true, name: true, slug: true } } },
         orderBy: { createdAt: "desc" },
       }),
+    (prisma) =>
       prisma.role.findMany({
         select: { id: true, name: true, slug: true },
         orderBy: { name: "asc" },
-      }),
-    ])
+      })
   );
 
   const rows: UserRow[] = users.map((u) => ({

@@ -26,11 +26,11 @@ export function DashboardPanel({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay, ease: [0.22, 1, 0.36, 1] }}
       className={cn(
-        "overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-sm",
+        "overflow-hidden rounded-2xl border border-slate-200/70 bg-white/90 shadow-sm backdrop-blur-sm",
         className
       )}
     >
-      <div className="flex items-start justify-between gap-4 border-b border-slate-100 px-6 py-5">
+      <div className="flex items-start justify-between gap-4 border-b border-slate-100 bg-gradient-to-r from-slate-50/80 to-white px-6 py-5">
         <div>
           <h3 className="text-lg font-semibold tracking-tight text-[#0A1F78]">
             {title}

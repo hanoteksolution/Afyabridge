@@ -1,7 +1,7 @@
 SHELL := /bin/sh
 NPM := npm
 
-.PHONY: help install dev dev-all build lint db-generate db-dev db-restart db-push db-migrate db-seed db-studio db-reset db-sync-url
+.PHONY: help install dev dev-all build lint deploy deploy-install deploy-update db-generate db-dev db-restart db-push db-migrate db-seed db-studio db-reset db-sync-url
 
 help:
 	@echo Afya Bridge make targets
@@ -13,7 +13,12 @@ help:
 	@echo   make build         Build production bundle
 	@echo   make lint          Run ESLint
 	@echo.
-	@echo Database:
+	@echo Production (server — needs Docker):
+	@echo   make deploy-install  First-time install on Droplet
+	@echo   make deploy-update   Pull code and restart containers
+	@echo   make deploy          docker compose up -d --build
+	@echo.
+	@echo Database (local dev only):
 	@echo   make db-generate   Run prisma generate
 	@echo   make db-dev        Start local Prisma Postgres
 	@echo   make db-restart    Restart local Prisma Postgres
@@ -38,6 +43,15 @@ build:
 
 lint:
 	$(NPM) run lint
+
+deploy:
+	docker compose up -d --build
+
+deploy-install:
+	bash scripts/install-production.sh
+
+deploy-update:
+	bash scripts/deploy-droplet.sh
 
 db-generate:
 	$(NPM) run db:generate

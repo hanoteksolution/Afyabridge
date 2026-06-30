@@ -4,7 +4,7 @@ import { getPublishedPageSlugs } from "@/lib/cms";
 
 export const dynamic = "force-dynamic";
 
-const RESERVED = new Set(["blog", "admin", "api", "uploads"]);
+const RESERVED = new Set(["blog", "admin", "api", "uploads", "case-studies"]);
 
 export async function generateStaticParams() {
   try {

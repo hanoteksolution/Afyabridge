@@ -11,9 +11,7 @@ export default async function ContactsAdminPage() {
     prisma.contact.findMany({ orderBy: { createdAt: "desc" } })
   );
 
-  const demoCount = contacts.filter((c) => c.requestDemo).length;
   const newCount = contacts.filter((c) => c.status === "NEW").length;
-  const convertedCount = contacts.filter((c) => c.status === "CONVERTED").length;
 
   const statusColors: Record<string, "default" | "secondary" | "success" | "accent" | "outline"> = {
     NEW: "accent",
@@ -25,14 +23,13 @@ export default async function ContactsAdminPage() {
 
   return (
     <div>
-      <AdminHeader title="Leads & Contacts" />
+      <AdminHeader title="Messages" />
       <div className="space-y-6 p-6 lg:p-8">
         <AdminStatsRow
           stats={[
-            { title: "Total leads", value: contacts.length, icon: "MessageSquare", variant: "blue" },
-            { title: "Demo requests", value: demoCount, icon: "Calendar", variant: "cyan" },
-            { title: "New leads", value: newCount, icon: "Mail", variant: "amber" },
-            { title: "Converted", value: convertedCount, icon: "CheckCircle2", variant: "emerald" },
+            { title: "All messages", value: contacts.length, icon: "MessageSquare", variant: "blue" },
+            { title: "Unread", value: newCount, icon: "Mail", variant: "amber" },
+            { title: "Replied", value: contacts.filter((c) => c.status === "CONTACTED").length, icon: "CheckCircle2", variant: "emerald" },
           ]}
         />
         <DataTable

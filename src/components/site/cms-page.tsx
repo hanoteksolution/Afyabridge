@@ -31,20 +31,36 @@ export async function CmsPageContent({ slug }: { slug?: string }) {
   const page = slug ? await getPageBySlug(slug) : await getHomePage();
   if (!page) notFound();
 
-  const [{ testimonials, caseStudies, blogPosts, faqs }, settings] = await Promise.all([
-    getPageAuxiliaryData(),
-    getSettings(),
-  ]);
+  const [{ testimonials, caseStudies, blogPosts, faqs }, settings] =
+    await Promise.all([
+      getPageAuxiliaryData(),
+      getSettings(),
+    ]);
 
   const faqSection = page.sections.find((s) => s.type === "CUSTOM" && getVariant(s) === "FAQ");
-  if (faqSection) return <FaqListSection section={faqSection} faqs={faqs} />;
-
   const pageHeader = page.sections.find((s) => s.type === "CUSTOM" && getVariant(s) === "PAGE_HEADER");
   const hasHero = page.sections.some((s) => s.type === "HERO");
   const contentSections = page.sections.filter((s) => {
     const v = getVariant(s);
     return !(s.type === "CUSTOM" && (v === "PAGE_HEADER" || v === "FAQ"));
   });
+
+  if (faqSection) {
+    const afterFaq = contentSections.filter((s) => s.id !== faqSection.id);
+    return (
+      <>
+        <FaqListSection section={faqSection} faqs={faqs} showBuiltInCta={false} />
+        <SectionRenderer
+          sections={afterFaq}
+          testimonials={testimonials}
+          caseStudies={caseStudies}
+          blogPosts={blogPosts}
+          faqs={faqs}
+          settings={settings}
+        />
+      </>
+    );
+  }
 
   return (
     <>

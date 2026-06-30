@@ -1,4 +1,4 @@
-import type { FullSection } from "@/lib/cms";
+import { FaqListSection } from "@/components/sections/faq-section";
 import { HeroSection } from "@/components/sections/hero-section";
 import { TrustBarSection } from "@/components/sections/trust-bar-section";
 import { WhySection } from "@/components/sections/why-section";
@@ -12,7 +12,8 @@ import { CaseStudiesSection } from "@/components/sections/case-studies-section";
 import { BlogSection } from "@/components/sections/blog-section";
 import { CTASection } from "@/components/sections/cta-section";
 import { ContactSection } from "@/components/sections/contact-section";
-import { FaqListSection } from "@/components/sections/faq-section";
+import { ContentBlockSection } from "@/components/sections/content-block-section";
+import type { FullSection } from "@/lib/cms";
 import type { Testimonial, CaseStudy, BlogPost, BlogCategory, User, FAQ } from "@prisma/client";
 
 type BlogPostWithRelations = BlogPost & {
@@ -107,6 +108,9 @@ export function SectionRenderer({
             }
             if (variant === "CONSULTING") {
               return <ConsultingServicesSection key={section.id} section={section} />;
+            }
+            if (variant === "CONTENT") {
+              return <ContentBlockSection key={section.id} section={section} />;
             }
             return null;
           }

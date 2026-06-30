@@ -1,6 +1,7 @@
 import { PrismaClient, SectionType } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import bcrypt from "bcryptjs";
+import { ensureAndBackfillMarketingPages, seedMarketingMenus } from "./seed-marketing-content";
 
 const connectionString = process.env.DIRECT_DATABASE_URL || process.env.DATABASE_URL!;
 const adapter = new PrismaPg({ connectionString });
@@ -529,88 +530,8 @@ async function main() {
     },
   });
 
-  // --- Marketing pages (CMS-driven multi-page site) ---
-  const marketingPages: { slug: string; title: string; description: string; sections: { type: SectionType; title?: string; subtitle?: string; variant?: string; buttonText?: string; buttonLink?: string }[] }[] = [
-    { slug: "about", title: "About Afya Bridge", description: "Empowering Better Healthcare Through Practical Technology", sections: [
-      { type: "CUSTOM", title: "About Afya Bridge", subtitle: "Our Story", variant: "PAGE_HEADER" },
-      { type: "MISSION_VISION", title: "Mission, Vision & Values" },
-      { type: "WHY_AFYA", title: "What Makes Us Different", subtitle: "Built for real healthcare environments." },
-      { type: "CTA", title: "Partner With Afya Bridge", subtitle: "Build a future where technology elevates patient care.", buttonText: "Request a Demo", buttonLink: "/contact" },
-    ]},
-    { slug: "platform", title: "Platform & Modules", description: "One Connected Platform for Healthcare Operations", sections: [
-      { type: "CUSTOM", title: "One Connected Platform for Healthcare Operations", subtitle: "The Platform", variant: "PAGE_HEADER" },
-      { type: "PLATFORM_MODULES", title: "Everything You Need — One Platform", subtitle: "Modular, scalable, and built for East African healthcare." },
-      { type: "CTA", title: "See the Platform in Action", buttonText: "Request a Demo", buttonLink: "/contact" },
-    ]},
-    { slug: "solutions", title: "Solutions", description: "One Connected Healthcare Platform", sections: [
-      { type: "CUSTOM", title: "One Connected Healthcare Platform", subtitle: "Our Solutions", variant: "PAGE_HEADER" },
-      { type: "WHO_WE_SERVE", title: "Solutions Designed for Every Care Environment" },
-      { type: "PLATFORM_MODULES", title: "Platform Capabilities" },
-      { type: "CTA", title: "Find the Right Solution", buttonText: "Request a Demo", buttonLink: "/contact" },
-    ]},
-    { slug: "clinics", title: "Healthcare Software for Clinics", description: "Serve More Patients. Reduce Admin Work.", sections: [
-      { type: "CUSTOM", title: "Serve More Patients. Reduce Admin Work.", subtitle: "For Clinics", variant: "PAGE_HEADER" },
-      { type: "WHY_AFYA", title: "Built for Clinics" },
-      { type: "CTA", title: "Get Started for Clinics", buttonText: "Request a Clinic Demo", buttonLink: "/contact" },
-    ]},
-    { slug: "hospitals", title: "Healthcare Software for Hospitals", description: "Improve Patient Flow. Lead with Data.", sections: [
-      { type: "CUSTOM", title: "Improve Patient Flow. Strengthen Operations.", subtitle: "For Hospitals", variant: "PAGE_HEADER" },
-      { type: "WHY_AFYA", title: "Built for Hospitals" },
-      { type: "CTA", title: "Get Started for Hospitals", buttonText: "Request a Hospital Demo", buttonLink: "/contact" },
-    ]},
-    { slug: "implementation", title: "Implementation & Support", description: "Simple, Structured, and Supportive", sections: [
-      { type: "CUSTOM", title: "Simple, Structured, and Supportive", subtitle: "Implementation", variant: "PAGE_HEADER" },
-      { type: "OUR_APPROACH", title: "From Assessment to Go-Live" },
-      { type: "CTA", title: "Plan Your Implementation", buttonText: "Contact Our Team", buttonLink: "/contact" },
-    ]},
-    { slug: "why-afya-bridge", title: "Why Afya Bridge", description: "More Than Software — A Healthcare Partner", sections: [
-      { type: "CUSTOM", title: "More Than Software — A Healthcare Partner", subtitle: "Why Afya Bridge", variant: "PAGE_HEADER" },
-      { type: "WHY_AFYA", title: "The Afya Bridge Difference" },
-      { type: "CTA", title: "Experience the Difference", buttonText: "Request a Demo", buttonLink: "/contact" },
-    ]},
-    { slug: "resources", title: "Resources & Insights", description: "Healthcare Technology Insights for East Africa", sections: [
-      { type: "CUSTOM", title: "Healthcare Technology Insights", subtitle: "Resources", variant: "PAGE_HEADER" },
-      { type: "BLOG", title: "Latest Insights" },
-      { type: "CTA", title: "Stay Informed", buttonText: "Subscribe", buttonLink: "/contact" },
-    ]},
-    { slug: "faq", title: "Frequently Asked Questions", description: "Everything You Need to Know", sections: [
-      { type: "CUSTOM", title: "Everything You Need to Know", subtitle: "FAQ", variant: "FAQ" },
-    ]},
-    { slug: "contact", title: "Contact Us", description: "Let's Start a Conversation", sections: [
-      { type: "CONTACT", title: "Let's Start a Conversation", subtitle: "We would love to learn more about your facility." },
-    ]},
-  ];
-
-  for (const mp of marketingPages) {
-    const page = await prisma.page.upsert({
-      where: { slug: mp.slug },
-      update: { title: mp.title, description: mp.description },
-      create: { title: mp.title, slug: mp.slug, description: mp.description, isPublished: true },
-    });
-    await prisma.sEO.upsert({
-      where: { pageId: page.id },
-      update: { metaTitle: `${mp.title} | Afya Bridge`, metaDescription: mp.description },
-      create: { pageId: page.id, metaTitle: `${mp.title} | Afya Bridge`, metaDescription: mp.description },
-    });
-    for (let i = 0; i < mp.sections.length; i++) {
-      const s = mp.sections[i];
-      const existing = await prisma.section.findFirst({ where: { pageId: page.id, type: s.type, order: i } });
-      if (existing) continue;
-      await prisma.section.create({
-        data: {
-          pageId: page.id,
-          type: s.type,
-          title: s.title,
-          subtitle: s.subtitle,
-          content: s.variant ? { variant: s.variant } : undefined,
-          buttonText: s.buttonText,
-          buttonLink: s.buttonLink,
-          order: i,
-          isVisible: true,
-        },
-      });
-    }
-  }
+  // --- Marketing pages (full CMS content — editable in admin) ---
+  await ensureAndBackfillMarketingPages(prisma);
 
   // --- FAQ content ---
   const faqData = [
@@ -628,75 +549,7 @@ async function main() {
     if (!exists) await prisma.fAQ.create({ data: { ...f, order: i } });
   }
 
-  const headerMenu = await prisma.menu.upsert({
-    where: { slug: "header" },
-    update: {},
-    create: { name: "Header Navigation", slug: "header", location: "header" },
-  });
-
-  await prisma.menuItem.deleteMany({ where: { menuId: headerMenu.id } });
-  const platform = await prisma.menuItem.create({ data: { menuId: headerMenu.id, label: "Platform", url: "/platform", order: 0 } });
-  const solutions = await prisma.menuItem.create({ data: { menuId: headerMenu.id, label: "Solutions", url: "/solutions", order: 1 } });
-  await prisma.menuItem.createMany({
-    data: [
-      { menuId: headerMenu.id, parentId: solutions.id, label: "For Clinics", url: "/clinics", order: 0 },
-      { menuId: headerMenu.id, parentId: solutions.id, label: "For Hospitals", url: "/hospitals", order: 1 },
-    ],
-  });
-  await prisma.menuItem.create({ data: { menuId: headerMenu.id, label: "Consulting", url: "/implementation", order: 2 } });
-  await prisma.menuItem.create({ data: { menuId: headerMenu.id, label: "Implementation", url: "/implementation", order: 3 } });
-  const resources = await prisma.menuItem.create({ data: { menuId: headerMenu.id, label: "Resources", url: "/resources", order: 4 } });
-  await prisma.menuItem.createMany({
-    data: [
-      { menuId: headerMenu.id, parentId: resources.id, label: "Blog", url: "/blog", order: 0 },
-      { menuId: headerMenu.id, parentId: resources.id, label: "Case Studies", url: "/resources", order: 1 },
-      { menuId: headerMenu.id, parentId: resources.id, label: "FAQ", url: "/faq", order: 2 },
-    ],
-  });
-  const company = await prisma.menuItem.create({ data: { menuId: headerMenu.id, label: "Company", url: "/about", order: 5 } });
-  await prisma.menuItem.createMany({
-    data: [
-      { menuId: headerMenu.id, parentId: company.id, label: "About Us", url: "/about", order: 0 },
-      { menuId: headerMenu.id, parentId: company.id, label: "Resources", url: "/resources", order: 1 },
-      { menuId: headerMenu.id, parentId: company.id, label: "FAQ", url: "/faq", order: 2 },
-    ],
-  });
-  void platform;
-
-  const footerMenu = await prisma.menu.upsert({
-    where: { slug: "footer" },
-    update: {},
-    create: { name: "Footer Navigation", slug: "footer", location: "footer" },
-  });
-
-  await prisma.menuItem.deleteMany({ where: { menuId: footerMenu.id } });
-  const footerPlatform = await prisma.menuItem.create({ data: { menuId: footerMenu.id, label: "Platform", url: "/platform", order: 0 } });
-  await prisma.menuItem.createMany({
-    data: [
-      { menuId: footerMenu.id, parentId: footerPlatform.id, label: "Platform Overview", url: "/platform", order: 0 },
-      { menuId: footerMenu.id, parentId: footerPlatform.id, label: "Solutions", url: "/solutions", order: 1 },
-      { menuId: footerMenu.id, parentId: footerPlatform.id, label: "For Clinics", url: "/clinics", order: 2 },
-      { menuId: footerMenu.id, parentId: footerPlatform.id, label: "For Hospitals", url: "/hospitals", order: 3 },
-    ],
-  });
-  const footerCompany = await prisma.menuItem.create({ data: { menuId: footerMenu.id, label: "Company", url: "/about", order: 1 } });
-  await prisma.menuItem.createMany({
-    data: [
-      { menuId: footerMenu.id, parentId: footerCompany.id, label: "About Us", url: "/about", order: 0 },
-      { menuId: footerMenu.id, parentId: footerCompany.id, label: "Why Afya Bridge", url: "/why-afya-bridge", order: 1 },
-      { menuId: footerMenu.id, parentId: footerCompany.id, label: "Implementation", url: "/implementation", order: 2 },
-      { menuId: footerMenu.id, parentId: footerCompany.id, label: "Contact", url: "/contact", order: 3 },
-    ],
-  });
-  const footerResources = await prisma.menuItem.create({ data: { menuId: footerMenu.id, label: "Resources", url: "/resources", order: 2 } });
-  await prisma.menuItem.createMany({
-    data: [
-      { menuId: footerMenu.id, parentId: footerResources.id, label: "Resources", url: "/resources", order: 0 },
-      { menuId: footerMenu.id, parentId: footerResources.id, label: "Blog", url: "/blog", order: 1 },
-      { menuId: footerMenu.id, parentId: footerResources.id, label: "FAQ", url: "/faq", order: 2 },
-      { menuId: footerMenu.id, parentId: footerResources.id, label: "Request a Demo", url: "/contact", order: 3 },
-    ],
-  });
+  await seedMarketingMenus(prisma);
 
   const settings = [
     { key: "site_name", value: "Afya Bridge", group: "branding" },

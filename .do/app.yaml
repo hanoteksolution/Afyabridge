@@ -1,0 +1,60 @@
+# DigitalOcean App Platform — import in: Apps → Create → GitHub → Edit spec
+# Docs: https://docs.digitalocean.com/products/app-platform/reference/app-spec/
+
+name: afya-bridge
+region: nyc
+
+services:
+  - name: web
+    github:
+      repo: hanoteksolution/Afyabridge
+      branch: master
+      deploy_on_push: true
+    source_dir: /
+    environment_slug: node-js
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    http_port: 3000
+    build_command: npm ci && npx prisma generate && npm run build
+    run_command: npm start
+    routes:
+      - path: /
+    envs:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        scope: RUN_TIME
+        value: ${afya-db.DATABASE_URL}
+      - key: DIRECT_DATABASE_URL
+        scope: RUN_TIME
+        value: ${afya-db.DATABASE_URL}
+      - key: AUTH_SECRET
+        scope: RUN_TIME
+        type: SECRET
+      - key: NEXTAUTH_URL
+        scope: RUN_TIME
+        value: ${_self.PUBLIC_URL}
+      - key: NEXT_PUBLIC_SITE_URL
+        scope: RUN_TIME
+        value: ${_self.PUBLIC_URL}
+
+jobs:
+  - name: db-migrate
+    kind: PRE_DEPLOY
+    github:
+      repo: hanoteksolution/Afyabridge
+      branch: master
+    source_dir: /
+    environment_slug: node-js
+    instance_size_slug: basic-xxs
+    run_command: npx prisma db push
+    envs:
+      - key: DATABASE_URL
+        scope: RUN_TIME
+        value: ${afya-db.DATABASE_URL}
+
+databases:
+  - name: afya-db
+    engine: PG
+    version: "16"
+    production: true

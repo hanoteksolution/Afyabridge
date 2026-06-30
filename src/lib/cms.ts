@@ -49,50 +49,37 @@ async function fetchPageWithSectionRelations(
     serviceModules,
     approachSteps,
     missionValues,
-  ] = await Promise.all([
-    withDbRetry((prisma) =>
-      prisma.heroSlide.findMany({
-        where: { sectionId: { in: sectionIds }, isVisible: true },
-        orderBy: { order: "asc" },
-      })
-    ),
-    withDbRetry((prisma) =>
-      prisma.trustStat.findMany({
-        where: { sectionId: { in: sectionIds } },
-        orderBy: { order: "asc" },
-      })
-    ),
-    withDbRetry((prisma) =>
-      prisma.whyCard.findMany({
-        where: { sectionId: { in: sectionIds }, isVisible: true },
-        orderBy: { order: "asc" },
-      })
-    ),
-    withDbRetry((prisma) =>
-      prisma.industry.findMany({
-        where: { sectionId: { in: sectionIds }, isVisible: true },
-        orderBy: { order: "asc" },
-      })
-    ),
-    withDbRetry((prisma) =>
-      prisma.serviceModule.findMany({
-        where: { sectionId: { in: sectionIds }, isVisible: true },
-        orderBy: { order: "asc" },
-      })
-    ),
-    withDbRetry((prisma) =>
-      prisma.approachStep.findMany({
-        where: { sectionId: { in: sectionIds }, isVisible: true },
-        orderBy: { order: "asc" },
-      })
-    ),
-    withDbRetry((prisma) =>
-      prisma.missionValue.findMany({
-        where: { sectionId: { in: sectionIds }, isVisible: true },
-        orderBy: { order: "asc" },
-      })
-    ),
-  ]);
+  ] = await withDbRetry(async (prisma) => {
+    const heroSlides = await prisma.heroSlide.findMany({
+      where: { sectionId: { in: sectionIds }, isVisible: true },
+      orderBy: { order: "asc" },
+    });
+    const trustStats = await prisma.trustStat.findMany({
+      where: { sectionId: { in: sectionIds } },
+      orderBy: { order: "asc" },
+    });
+    const whyCards = await prisma.whyCard.findMany({
+      where: { sectionId: { in: sectionIds }, isVisible: true },
+      orderBy: { order: "asc" },
+    });
+    const industries = await prisma.industry.findMany({
+      where: { sectionId: { in: sectionIds }, isVisible: true },
+      orderBy: { order: "asc" },
+    });
+    const serviceModules = await prisma.serviceModule.findMany({
+      where: { sectionId: { in: sectionIds }, isVisible: true },
+      orderBy: { order: "asc" },
+    });
+    const approachSteps = await prisma.approachStep.findMany({
+      where: { sectionId: { in: sectionIds }, isVisible: true },
+      orderBy: { order: "asc" },
+    });
+    const missionValues = await prisma.missionValue.findMany({
+      where: { sectionId: { in: sectionIds }, isVisible: true },
+      orderBy: { order: "asc" },
+    });
+    return [heroSlides, trustStats, whyCards, industries, serviceModules, approachSteps, missionValues] as const;
+  });
 
   const heroMap = groupBySectionId(heroSlides);
   const trustMap = groupBySectionId(trustStats);
@@ -270,6 +257,31 @@ export const getBlogPostBySlug = cache(async function getBlogPostBySlug(
   return post;
 });
 
+export const getCaseStudyBySlug = cache(async function getCaseStudyBySlug(
+  slug: string,
+  options?: { publishedOnly?: boolean }
+) {
+  const study = await withDbRetry((prisma) =>
+    prisma.caseStudy.findUnique({ where: { slug } })
+  );
+  if (options?.publishedOnly && study && !study.isPublished) return null;
+  return study;
+});
+
+export const getPublishedCaseStudiesList = cache(async function getPublishedCaseStudiesList() {
+  return cmsSafe(
+    "getPublishedCaseStudiesList",
+    () =>
+      withDbRetry((prisma) =>
+        prisma.caseStudy.findMany({
+          where: { isPublished: true },
+          orderBy: { order: "asc" },
+        })
+      ),
+    []
+  );
+});
+
 export const getPublishedBlogPostsList = cache(async function getPublishedBlogPostsList() {
   return cmsSafe(
     "getPublishedBlogPostsList",
@@ -340,11 +352,9 @@ export const getPublishedPageSlugs = cache(async function getPublishedPageSlugs(
 });
 
 export const getPageAuxiliaryData = cache(async function getPageAuxiliaryData() {
-  const [testimonials, caseStudies, blogPosts, faqs] = await Promise.all([
-    getTestimonials(),
-    getCaseStudies(),
-    getBlogPosts(),
-    getFAQs(),
-  ]);
+  const testimonials = await getTestimonials();
+  const caseStudies = await getCaseStudies();
+  const blogPosts = await getBlogPosts();
+  const faqs = await getFAQs();
   return { testimonials, caseStudies, blogPosts, faqs };
 });

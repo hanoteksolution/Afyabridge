@@ -88,14 +88,13 @@ export function BlogsAdminView({
           <div>
             <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium text-white/90">
               <Sparkles className="h-3.5 w-3.5 text-[#00C2FF]" />
-              Content publishing
+              Posts
             </div>
             <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">
-              Blog
+              All posts
             </h2>
             <p className="mt-1.5 max-w-xl text-sm text-white/75">
-              Write, publish, and organize articles with categories and tags for
-              your healthcare audience.
+              Write and publish articles — same idea as WordPress posts.
             </p>
           </div>
           <Button

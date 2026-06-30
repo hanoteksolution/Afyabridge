@@ -20,7 +20,7 @@ export function AdminShell({
   }
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_#eef2ff_0%,_#f8fafc_45%,_#f8fafc_100%)]">
+    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top_left,_#e0e7ff_0%,_#f1f5f9_40%,_#f8fafc_100%)]">
       <AdminSidebar siteName={siteName} siteLogo={siteLogo} />
       <div className="pl-64 transition-all duration-300">{children}</div>
     </div>

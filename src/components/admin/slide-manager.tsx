@@ -356,37 +356,6 @@ export function SlideManager({
 
   return (
     <div className="space-y-6">
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-2xl border border-[#0A1F78]/10 bg-gradient-to-br from-[#0A1F78] via-[#1e40af] to-[#2563EB] p-6 text-white shadow-lg shadow-[#0A1F78]/15 sm:p-7"
-      >
-        <div className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-violet-400/25 blur-3xl" />
-        <div className="relative flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium text-white/90">
-              <Sparkles className="h-3.5 w-3.5 text-[#00C2FF]" />
-              Homepage hero
-            </div>
-            <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">
-              Hero slider
-            </h2>
-            <p className="mt-1.5 max-w-xl text-sm text-white/75">
-              Manage rotating slides with headlines, imagery, badges, and
-              call-to-action buttons on your homepage.
-            </p>
-          </div>
-          <Button
-            onClick={openCreate}
-            size="lg"
-            className="h-11 shrink-0 rounded-xl bg-white text-[#0A1F78] shadow-md hover:bg-white/95"
-          >
-            <Plus className="h-4 w-4" />
-            Add slide
-          </Button>
-        </div>
-      </motion.div>
-
       <AdminStatsRow
         stats={[
           { title: "Total slides", value: slides.length, icon: "GalleryHorizontal", variant: "indigo" },
@@ -417,19 +386,18 @@ export function SlideManager({
         className="overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-sm"
       >
         <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5">
-          <div className="flex items-center gap-4">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 text-white shadow-md">
-              <GalleryHorizontal className="h-5 w-5" />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold tracking-tight text-[#0A1F78]">
-                Slide lineup
-              </h3>
-              <p className="text-sm text-slate-500">
-                {slides.length} slide{slides.length === 1 ? "" : "s"} in rotation order
-              </p>
-            </div>
+          <div>
+            <h3 className="text-lg font-semibold tracking-tight text-[#0A1F78]">
+              Slides
+            </h3>
+            <p className="text-sm text-slate-500">
+              {slides.length} in rotation — drag order with arrows
+            </p>
           </div>
+          <Button onClick={openCreate} className="rounded-xl">
+            <Plus className="h-4 w-4" />
+            Add slide
+          </Button>
         </div>
 
         <div className="space-y-3 p-6">
@@ -473,6 +441,7 @@ export function SlideManager({
                         src={slide.image}
                         alt={slide.title}
                         fill
+                        sizes="128px"
                         className="object-cover transition-transform duration-300 group-hover:scale-105"
                       />
                     ) : (
@@ -518,13 +487,8 @@ export function SlideManager({
                       </span>
                     </div>
                     {slide.subtitle && (
-                      <p className="mt-1 line-clamp-2 text-sm text-slate-500">
+                      <p className="mt-1 line-clamp-1 text-sm text-slate-500">
                         {slide.subtitle}
-                      </p>
-                    )}
-                    {(slide.ctaText || slide.ctaText2) && (
-                      <p className="mt-2 text-xs text-slate-400">
-                        CTA: {[slide.ctaText, slide.ctaText2].filter(Boolean).join(" · ")}
                       </p>
                     )}
                   </div>

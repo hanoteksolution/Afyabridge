@@ -26,26 +26,26 @@ import { cn } from "@/lib/utils";
 
 const features = [
   {
-    icon: Shield,
-    title: "Enterprise security",
-    description: "Role-based access, encrypted sessions, and audit trails.",
-    tone: "from-emerald-500/20 to-emerald-500/5 text-emerald-300",
-  },
-  {
     icon: LayoutDashboard,
-    title: "Unified control",
-    description: "Pages, media, leads, and SEO — one polished workspace.",
+    title: "Simple dashboard",
+    description: "Pages, posts, media, and menus — like WordPress.",
     tone: "from-sky-500/20 to-sky-500/5 text-sky-300",
   },
   {
+    icon: Shield,
+    title: "Secure sign-in",
+    description: "Your content stays protected behind login.",
+    tone: "from-emerald-500/20 to-emerald-500/5 text-emerald-300",
+  },
+  {
     icon: Zap,
-    title: "Built for speed",
-    description: "Premium CMS tooling designed for healthcare teams.",
+    title: "Easy updates",
+    description: "Edit your site without code or complicated modules.",
     tone: "from-violet-500/20 to-violet-500/5 text-violet-300",
   },
 ];
 
-const trustItems = ["256-bit sessions", "RBAC permissions", "Activity logging"];
+const trustItems = ["Pages & posts", "Media library", "Contact inbox"];
 
 function resolveCallbackUrl(callbackUrl: string | null) {
   if (!callbackUrl) return "/admin/dashboard";
@@ -183,7 +183,7 @@ function LoginForm() {
             Welcome back
           </h1>
           <p className="mt-2 text-sm leading-relaxed text-white/55">
-            Sign in to manage content, leads, and your digital experience.
+            Sign in to manage your website — pages, posts, and media.
           </p>
         </div>
 
@@ -365,9 +365,9 @@ export function LoginView({
               transition={{ delay: 0.12, duration: 0.65 }}
               className="max-w-xl text-4xl font-semibold leading-[1.08] tracking-tight text-white sm:text-5xl xl:text-[3.35rem]"
             >
-              Command your
+              Manage your
               <span className="block bg-gradient-to-r from-[#7dd3fc] via-[#38bdf8] to-[#00C2FF] bg-clip-text text-transparent">
-                healthcare platform
+                website content
               </span>
             </motion.h2>
 
@@ -377,8 +377,8 @@ export function LoginView({
               transition={{ delay: 0.2, duration: 0.6 }}
               className="mt-6 max-w-lg text-base leading-relaxed text-white/55 sm:text-lg"
             >
-              A premium control center for content, leads, SEO, and digital
-              experiences — designed for teams that bridge technology and care.
+              A simple CMS like WordPress — edit pages, write posts, upload
+              images, and read contact messages. No hospital or shop modules.
             </motion.p>
 
             <motion.div
@@ -387,7 +387,7 @@ export function LoginView({
               transition={{ delay: 0.28, duration: 0.55 }}
               className="mt-8 hidden gap-3 sm:flex"
             >
-              {["Pages", "Leads", "Media", "SEO"].map((item) => (
+              {["Pages", "Posts", "Media", "Menus"].map((item) => (
                 <span
                   key={item}
                   className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-medium text-white/60 backdrop-blur-sm"

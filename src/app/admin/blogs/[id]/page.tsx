@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { AdminHeader } from "@/components/admin/header";
 import { BlogForm } from "@/components/admin/blog-form";
-import { withDbRetry } from "@/lib/prisma";
+import { dbBatch } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
@@ -11,11 +11,9 @@ export default async function EditBlogPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [post, categories] = await withDbRetry((prisma) =>
-    Promise.all([
-      prisma.blogPost.findUnique({ where: { id } }),
-      prisma.blogCategory.findMany({ orderBy: { name: "asc" } }),
-    ])
+  const [post, categories] = await dbBatch(
+    (prisma) => prisma.blogPost.findUnique({ where: { id } }),
+    (prisma) => prisma.blogCategory.findMany({ orderBy: { name: "asc" } })
   );
 
   if (!post) notFound();

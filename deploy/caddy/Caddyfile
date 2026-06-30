@@ -1,0 +1,14 @@
+# Automatic HTTPS when DOMAIN is a real domain (set ACME_EMAIL in .env).
+# For local testing: DOMAIN=localhost (HTTP only).
+
+{
+	email {$ACME_EMAIL}
+}
+
+{$DOMAIN:localhost} {
+	reverse_proxy app:3000
+	encode gzip
+	request_body {
+		max_size 25MB
+	}
+}

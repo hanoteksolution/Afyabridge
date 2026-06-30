@@ -7,11 +7,9 @@ import { ThemeVariables } from "@/components/website/theme-variables";
 import { getMenuBySlug, getSettings } from "@/lib/cms";
 
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
-  const [headerMenu, footerMenu, settings] = await Promise.all([
-    getMenuBySlug("header"),
-    getMenuBySlug("footer"),
-    getSettings(),
-  ]);
+  const headerMenu = await getMenuBySlug("header");
+  const footerMenu = await getMenuBySlug("footer");
+  const settings = await getSettings();
 
   const headerItems = headerMenu?.items.map((item) => ({
     label: item.label,

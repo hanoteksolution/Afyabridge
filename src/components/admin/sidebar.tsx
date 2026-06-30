@@ -3,15 +3,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  LayoutDashboard, FileText, Layers, Image as ImageIcon, Search, Menu,
-  Settings, Users, Shield, Activity, MessageSquare, BookOpen,
-  Star, Briefcase, LogOut, ChevronLeft, ChevronRight, GalleryHorizontal, HelpCircle,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { signOut } from "next-auth/react";
 import { useState } from "react";
 import { SiteLogo } from "@/components/website/site-logo";
+import { ADMIN_NAV_GROUPS } from "@/lib/admin-nav";
 
 function brandInitials(name: string) {
   return name
@@ -21,25 +18,6 @@ function brandInitials(name: string) {
     .slice(0, 2)
     .toUpperCase();
 }
-
-const navItems = [
-  { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/admin/pages", label: "Pages", icon: FileText },
-  { href: "/admin/sections", label: "Sections", icon: Layers },
-  { href: "/admin/slides", label: "Hero Slider", icon: GalleryHorizontal },
-  { href: "/admin/media", label: "Media Library", icon: ImageIcon },
-  { href: "/admin/seo", label: "SEO Manager", icon: Search },
-  { href: "/admin/menus", label: "Menu Builder", icon: Menu },
-  { href: "/admin/blogs", label: "Blog", icon: BookOpen },
-  { href: "/admin/faq", label: "FAQ", icon: HelpCircle },
-  { href: "/admin/testimonials", label: "Testimonials", icon: Star },
-  { href: "/admin/case-studies", label: "Case Studies", icon: Briefcase },
-  { href: "/admin/contacts", label: "Leads & Contacts", icon: MessageSquare },
-  { href: "/admin/users", label: "Users", icon: Users },
-  { href: "/admin/roles", label: "Roles", icon: Shield },
-  { href: "/admin/activity", label: "Activity Logs", icon: Activity },
-  { href: "/admin/settings", label: "Settings", icon: Settings },
-];
 
 export function AdminSidebar({
   siteName,
@@ -92,12 +70,13 @@ export function AdminSidebar({
                 className="max-w-[11rem]"
               />
               <span className="mt-0.5 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                Admin
+                Site admin
               </span>
             </div>
           )}
         </Link>
         <button
+          type="button"
           onClick={() => setCollapsed(!collapsed)}
           className={cn("shrink-0 rounded-lg p-1.5 hover:bg-slate-100", collapsed && "p-1")}
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
@@ -106,35 +85,52 @@ export function AdminSidebar({
         </button>
       </div>
 
-      <nav className="flex-1 overflow-y-auto py-4 px-2 space-y-0.5">
-        {navItems.map((item) => {
-          const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                isActive
-                  ? "bg-[#0A1F78]/10 text-[#0A1F78]"
-                  : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-              )}
-              title={collapsed ? item.label : undefined}
-            >
-              <item.icon className="h-4 w-4 shrink-0" />
-              {!collapsed && <span>{item.label}</span>}
-            </Link>
-          );
-        })}
+      <nav className="flex-1 overflow-y-auto py-4 px-2">
+        {ADMIN_NAV_GROUPS.map((group, groupIndex) => (
+          <div
+            key={group.label ?? `group-${groupIndex}`}
+            className={cn(groupIndex > 0 && "mt-5 border-t border-slate-100 pt-4")}
+          >
+            {!collapsed && group.label && (
+              <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                {group.label}
+              </p>
+            )}
+            <ul className="space-y-0.5">
+              {group.items.map((item) => {
+                const isActive =
+                  pathname === item.href || pathname.startsWith(item.href + "/");
+                return (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      className={cn(
+                        "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                        isActive
+                          ? "bg-[#0A1F78]/10 text-[#0A1F78]"
+                          : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                      )}
+                      title={collapsed ? item.label : item.description}
+                    >
+                      <item.icon className="h-4 w-4 shrink-0" />
+                      {!collapsed && <span>{item.label}</span>}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ))}
       </nav>
 
       <div className="border-t border-slate-200 p-2">
         <button
+          type="button"
           onClick={() => signOut({ callbackUrl: "/admin/login" })}
           className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-red-50 hover:text-red-600 transition-colors"
         >
           <LogOut className="h-4 w-4 shrink-0" />
-          {!collapsed && <span>Sign Out</span>}
+          {!collapsed && <span>Log out</span>}
         </button>
       </div>
     </aside>
