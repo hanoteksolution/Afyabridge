@@ -1,5 +1,7 @@
 import { cache } from "react";
+import { unstable_cache } from "next/cache";
 import { withDbRetry, type PrismaClient } from "@/lib/prisma";
+import { CMS_CACHE_TAG, getCmsCacheRevalidate } from "@/lib/cms-config";
 import type { Page, Section, SectionType, SEO } from "@prisma/client";
 
 type PageWithSections = Page & {
@@ -144,102 +146,124 @@ const pageWithSectionsInclude = {
   seo: true,
 } as const;
 
+function withCmsCache<T>(key: string, fn: () => Promise<T>): Promise<T> {
+  if (process.env.NODE_ENV === "development") {
+    return fn();
+  }
+  return unstable_cache(fn, [key], {
+    revalidate: getCmsCacheRevalidate(),
+    tags: [CMS_CACHE_TAG],
+  })();
+}
+
 export const getHomePage = cache(async function getHomePage() {
-  return cmsSafe(
-    "getHomePage",
-    () =>
-      fetchPageWithSectionRelations((prisma) =>
-        prisma.page.findFirst({
-          where: { isHome: true, isPublished: true },
-          include: pageWithSectionsInclude,
-        })
-      ),
-    null
+  return withCmsCache("home-page", () =>
+    cmsSafe(
+      "getHomePage",
+      () =>
+        fetchPageWithSectionRelations((prisma) =>
+          prisma.page.findFirst({
+            where: { isHome: true, isPublished: true },
+            include: pageWithSectionsInclude,
+          })
+        ),
+      null
+    )
   );
 });
 
 export const getPageBySlug = cache(async function getPageBySlug(slug: string) {
-  return cmsSafe(
-    `getPageBySlug(${slug})`,
-    () =>
-      fetchPageWithSectionRelations(async (prisma) => {
-        const page = await prisma.page.findUnique({
-          where: { slug },
-          include: pageWithSectionsInclude,
-        });
-        return page?.isPublished ? page : null;
-      }),
-    null
+  return withCmsCache(`page-${slug}`, () =>
+    cmsSafe(
+      `getPageBySlug(${slug})`,
+      () =>
+        fetchPageWithSectionRelations(async (prisma) => {
+          const page = await prisma.page.findUnique({
+            where: { slug },
+            include: pageWithSectionsInclude,
+          });
+          return page?.isPublished ? page : null;
+        }),
+      null
+    )
   );
 });
 
 export const getTestimonials = cache(async function getTestimonials() {
-  return cmsSafe(
-    "getTestimonials",
-    () =>
-      withDbRetry((prisma) =>
-        prisma.testimonial.findMany({
-          where: { isVisible: true },
-          orderBy: { order: "asc" },
-        })
-      ),
-    []
+  return withCmsCache("testimonials", () =>
+    cmsSafe(
+      "getTestimonials",
+      () =>
+        withDbRetry((prisma) =>
+          prisma.testimonial.findMany({
+            where: { isVisible: true },
+            orderBy: { order: "asc" },
+          })
+        ),
+      []
+    )
   );
 });
 
 export const getCaseStudies = cache(async function getCaseStudies(limit = 6) {
-  return cmsSafe(
-    "getCaseStudies",
-    () =>
-      withDbRetry((prisma) =>
-        prisma.caseStudy.findMany({
-          where: { isPublished: true },
-          orderBy: { order: "asc" },
-          take: limit,
-        })
-      ),
-    []
+  return withCmsCache(`case-studies-${limit}`, () =>
+    cmsSafe(
+      "getCaseStudies",
+      () =>
+        withDbRetry((prisma) =>
+          prisma.caseStudy.findMany({
+            where: { isPublished: true },
+            orderBy: { order: "asc" },
+            take: limit,
+          })
+        ),
+      []
+    )
   );
 });
 
 export const getBlogPosts = cache(async function getBlogPosts(limit = 4) {
-  return cmsSafe(
-    "getBlogPosts",
-    () =>
-      withDbRetry((prisma) =>
-        prisma.blogPost.findMany({
-          where: { isPublished: true },
-          orderBy: { publishedAt: "desc" },
-          take: limit,
-          include: { category: true, author: true },
-        })
-      ),
-    []
+  return withCmsCache(`blog-posts-${limit}`, () =>
+    cmsSafe(
+      "getBlogPosts",
+      () =>
+        withDbRetry((prisma) =>
+          prisma.blogPost.findMany({
+            where: { isPublished: true },
+            orderBy: { publishedAt: "desc" },
+            take: limit,
+            include: { category: true, author: true },
+          })
+        ),
+      []
+    )
   );
 });
 
 export const getMenuBySlug = cache(async function getMenuBySlug(slug: string) {
-  return cmsSafe(
-    `getMenuBySlug(${slug})`,
-    () =>
-      withDbRetry((prisma) =>
-        prisma.menu.findUnique({
-          where: { slug },
-          include: {
-            items: {
-              where: { isVisible: true, parentId: null },
-              orderBy: { order: "asc" },
-              include: {
-                children: {
-                  where: { isVisible: true },
-                  orderBy: { order: "asc" },
+  return withCmsCache(`menu-${slug}`, () =>
+    cmsSafe(
+      `getMenuBySlug(${slug})`,
+      () =>
+        withDbRetry((prisma) =>
+          prisma.menu.findUnique({
+            where: { slug },
+            include: {
+              items: {
+                where: { isVisible: true, parentId: null },
+                orderBy: { order: "asc" },
+                include: {
+                  children: {
+                    where: { isVisible: true },
+                    orderBy: { order: "asc" },
+                  },
                 },
               },
             },
-          },
-        })
-      ),
-    null
+          })
+        ),
+      null
+    )
   );
 });
 
@@ -247,70 +271,82 @@ export const getBlogPostBySlug = cache(async function getBlogPostBySlug(
   slug: string,
   options?: { publishedOnly?: boolean }
 ) {
-  const post = await withDbRetry((prisma) =>
-    prisma.blogPost.findUnique({
-      where: { slug },
-      include: { category: true, author: true, seo: true },
-    })
-  );
-  if (options?.publishedOnly && post && !post.isPublished) return null;
-  return post;
+  const publishedOnly = options?.publishedOnly ?? false;
+  return withCmsCache(`blog-post-${slug}-${publishedOnly}`, async () => {
+    const post = await withDbRetry((prisma) =>
+      prisma.blogPost.findUnique({
+        where: { slug },
+        include: { category: true, author: true, seo: true },
+      })
+    );
+    if (publishedOnly && post && !post.isPublished) return null;
+    return post;
+  });
 });
 
 export const getCaseStudyBySlug = cache(async function getCaseStudyBySlug(
   slug: string,
   options?: { publishedOnly?: boolean }
 ) {
-  const study = await withDbRetry((prisma) =>
-    prisma.caseStudy.findUnique({ where: { slug } })
-  );
-  if (options?.publishedOnly && study && !study.isPublished) return null;
-  return study;
+  const publishedOnly = options?.publishedOnly ?? false;
+  return withCmsCache(`case-study-${slug}-${publishedOnly}`, async () => {
+    const study = await withDbRetry((prisma) =>
+      prisma.caseStudy.findUnique({ where: { slug } })
+    );
+    if (publishedOnly && study && !study.isPublished) return null;
+    return study;
+  });
 });
 
 export const getPublishedCaseStudiesList = cache(async function getPublishedCaseStudiesList() {
-  return cmsSafe(
-    "getPublishedCaseStudiesList",
-    () =>
-      withDbRetry((prisma) =>
-        prisma.caseStudy.findMany({
-          where: { isPublished: true },
-          orderBy: { order: "asc" },
-        })
-      ),
-    []
+  return withCmsCache("case-studies-list", () =>
+    cmsSafe(
+      "getPublishedCaseStudiesList",
+      () =>
+        withDbRetry((prisma) =>
+          prisma.caseStudy.findMany({
+            where: { isPublished: true },
+            orderBy: { order: "asc" },
+          })
+        ),
+      []
+    )
   );
 });
 
 export const getPublishedBlogPostsList = cache(async function getPublishedBlogPostsList() {
-  return cmsSafe(
-    "getPublishedBlogPostsList",
-    () =>
-      withDbRetry((prisma) =>
-        prisma.blogPost.findMany({
-          where: { isPublished: true },
-          orderBy: { publishedAt: "desc" },
-          include: { category: true, author: true },
-        })
-      ),
-    []
+  return withCmsCache("blog-posts-list", () =>
+    cmsSafe(
+      "getPublishedBlogPostsList",
+      () =>
+        withDbRetry((prisma) =>
+          prisma.blogPost.findMany({
+            where: { isPublished: true },
+            orderBy: { publishedAt: "desc" },
+            include: { category: true, author: true },
+          })
+        ),
+      []
+    )
   );
 });
 
 export const getSettings = cache(async function getSettings() {
-  return cmsSafe(
-    "getSettings",
-    async () => {
-      const settings = await withDbRetry((prisma) => prisma.setting.findMany());
-      return settings.reduce(
-        (acc, s) => {
-          acc[s.key] = s.value;
-          return acc;
-        },
-        {} as Record<string, unknown>
-      );
-    },
-    {} as Record<string, unknown>
+  return withCmsCache("site-settings", () =>
+    cmsSafe(
+      "getSettings",
+      async () => {
+        const settings = await withDbRetry((prisma) => prisma.setting.findMany());
+        return settings.reduce(
+          (acc, s) => {
+            acc[s.key] = s.value;
+            return acc;
+          },
+          {} as Record<string, unknown>
+        );
+      },
+      {} as Record<string, unknown>
+    )
   );
 });
 
@@ -330,16 +366,18 @@ export function getSectionByType(sections: FullSection[], type: SectionType) {
 }
 
 export const getFAQs = cache(async function getFAQs() {
-  return cmsSafe(
-    "getFAQs",
-    () =>
-      withDbRetry((prisma) =>
-        prisma.fAQ.findMany({
-          where: { isVisible: true },
-          orderBy: { order: "asc" },
-        })
-      ),
-    []
+  return withCmsCache("faqs", () =>
+    cmsSafe(
+      "getFAQs",
+      () =>
+        withDbRetry((prisma) =>
+          prisma.fAQ.findMany({
+            where: { isVisible: true },
+            orderBy: { order: "asc" },
+          })
+        ),
+      []
+    )
   );
 });
 

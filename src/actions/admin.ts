@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { revalidatePublicSite } from "@/lib/revalidate-site";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { logActivity } from "@/lib/activity";
@@ -25,7 +26,7 @@ export async function toggleSectionVisibility(sectionId: string, isVisible: bool
     entityId: sectionId,
     details: { isVisible },
   });
-  revalidatePath("/");
+  revalidatePublicSite();
   revalidatePath("/admin/sections");
   return section;
 }
@@ -43,7 +44,7 @@ export async function reorderSections(pageId: string, sectionIds: string[]) {
     entity: "Section",
     details: { pageId, sectionIds },
   });
-  revalidatePath("/");
+  revalidatePublicSite();
   revalidatePath(`/admin/pages/${pageId}`);
   return { success: true };
 }
@@ -110,7 +111,7 @@ export async function duplicateSection(sectionId: string) {
     entityId: duplicate.id,
     details: { duplicatedFrom: sectionId },
   });
-  revalidatePath("/");
+  revalidatePublicSite();
   return duplicate;
 }
 
@@ -123,7 +124,7 @@ export async function deleteSection(sectionId: string) {
     entity: "Section",
     entityId: sectionId,
   });
-  revalidatePath("/");
+  revalidatePublicSite();
   revalidatePath("/admin/sections");
 }
 
@@ -159,7 +160,7 @@ export async function updateSection(
     entity: "Section",
     entityId: sectionId,
   });
-  revalidatePath("/");
+  revalidatePublicSite();
   return section;
 }
 
@@ -192,5 +193,6 @@ export async function deleteMedia(mediaId: string) {
     entity: "Media",
     entityId: mediaId,
   });
+  revalidatePublicSite();
   revalidatePath("/admin/media");
 }

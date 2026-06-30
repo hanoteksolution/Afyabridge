@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { getBlogPostBySlug } from "@/lib/cms";
 import { Badge } from "@/components/ui/badge";
 import type { Metadata } from "next";
+export const revalidate = 120;
 
 export async function generateMetadata({
   params,

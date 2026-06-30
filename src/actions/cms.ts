@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePublicSite } from "@/lib/revalidate-site";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { logActivity } from "@/lib/activity";
@@ -10,12 +10,6 @@ async function requireAuth() {
   const session = await auth();
   if (!session?.user) throw new Error("Unauthorized");
   return session;
-}
-
-function revalidateSite(paths: string[] = ["/"]) {
-  const all = new Set(["/", ...paths, "/blog", "/admin/pages", "/admin/sections"]);
-  for (const p of all) revalidatePath(p);
-  revalidatePath("/", "layout");
 }
 
 // ─── Pages ───────────────────────────────────────────────────────────────────
@@ -40,7 +34,7 @@ export async function createPage(data: {
   });
   await prisma.sEO.create({ data: { pageId: page.id, metaTitle: data.title } });
   await logActivity({ userId: session.user.id, action: "CREATE", entity: "Page", entityId: page.id });
-  revalidateSite([`/${slug}`]);
+  revalidatePublicSite([`/${slug}`]);
   return { success: true, page };
 }
 
@@ -57,7 +51,7 @@ export async function updatePage(
     },
   });
   await logActivity({ userId: session.user.id, action: "UPDATE", entity: "Page", entityId: id });
-  revalidateSite([`/${page.slug}`, page.isHome ? "/" : ""]);
+  revalidatePublicSite([`/${page.slug}`, page.isHome ? "/" : ""]);
   return { success: true, page };
 }
 
@@ -68,7 +62,7 @@ export async function deletePage(id: string) {
   if (page.isHome) return { success: false, error: "Cannot delete home page" };
   await prisma.page.delete({ where: { id } });
   await logActivity({ userId: session.user.id, action: "DELETE", entity: "Page", entityId: id });
-  revalidateSite([`/${page.slug}`]);
+  revalidatePublicSite([`/${page.slug}`]);
   return { success: true };
 }
 
@@ -79,7 +73,7 @@ export async function createSection(pageId: string, type: SectionType) {
     data: { pageId, type, order: (maxOrder._max.order ?? -1) + 1, isVisible: true },
   });
   await logActivity({ userId: session.user.id, action: "CREATE", entity: "Section", entityId: section.id });
-  revalidateSite();
+  revalidatePublicSite();
   return { success: true, section };
 }
 
@@ -115,7 +109,7 @@ export async function saveSection(
     },
   });
   await logActivity({ userId: session.user.id, action: "UPDATE", entity: "Section", entityId: sectionId });
-  revalidateSite();
+  revalidatePublicSite();
   return { success: true, section };
 }
 
@@ -182,14 +176,14 @@ async function upsertChild(
 export async function saveTrustStat(sectionId: string, id: string | undefined, data: { label: string; value: number; suffix?: string; icon?: string }) {
   await requireAuth();
   await upsertChild("trustStat", sectionId, id, data);
-  revalidateSite();
+  revalidatePublicSite();
   return { success: true };
 }
 
 export async function deleteTrustStat(id: string) {
   await requireAuth();
   await prisma.trustStat.delete({ where: { id } });
-  revalidateSite();
+  revalidatePublicSite();
   return { success: true };
 }
 
@@ -211,14 +205,14 @@ export async function saveWhyCard(
     ...data,
     bullets: data.bullets as Prisma.InputJsonValue | undefined,
   });
-  revalidateSite();
+  revalidatePublicSite();
   return { success: true };
 }
 
 export async function deleteWhyCard(id: string) {
   await requireAuth();
   await prisma.whyCard.delete({ where: { id } });
-  revalidateSite();
+  revalidatePublicSite();
   return { success: true };
 }
 
@@ -257,56 +251,56 @@ export async function saveIndustry(
     ctaLink: data.ctaLink,
     benefits: benefitsJson as Prisma.InputJsonValue,
   });
-  revalidateSite();
+  revalidatePublicSite();
   return { success: true };
 }
 
 export async function deleteIndustry(id: string) {
   await requireAuth();
   await prisma.industry.delete({ where: { id } });
-  revalidateSite();
+  revalidatePublicSite();
   return { success: true };
 }
 
 export async function saveServiceModule(sectionId: string, id: string | undefined, data: { name: string; slug: string; description?: string; icon?: string; image?: string; benefits?: string[] }) {
   await requireAuth();
   await upsertChild("serviceModule", sectionId, id, { ...data, benefits: data.benefits as Prisma.InputJsonValue });
-  revalidateSite();
+  revalidatePublicSite();
   return { success: true };
 }
 
 export async function deleteServiceModule(id: string) {
   await requireAuth();
   await prisma.serviceModule.delete({ where: { id } });
-  revalidateSite();
+  revalidatePublicSite();
   return { success: true };
 }
 
 export async function saveApproachStep(sectionId: string, id: string | undefined, data: { title: string; description?: string; icon?: string }) {
   await requireAuth();
   await upsertChild("approachStep", sectionId, id, data);
-  revalidateSite();
+  revalidatePublicSite();
   return { success: true };
 }
 
 export async function deleteApproachStep(id: string) {
   await requireAuth();
   await prisma.approachStep.delete({ where: { id } });
-  revalidateSite();
+  revalidatePublicSite();
   return { success: true };
 }
 
 export async function saveMissionValue(sectionId: string, id: string | undefined, data: { type: string; title: string; content?: string; icon?: string }) {
   await requireAuth();
   await upsertChild("missionValue", sectionId, id, data);
-  revalidateSite();
+  revalidatePublicSite();
   return { success: true };
 }
 
 export async function deleteMissionValue(id: string) {
   await requireAuth();
   await prisma.missionValue.delete({ where: { id } });
-  revalidateSite();
+  revalidatePublicSite();
   return { success: true };
 }
 
@@ -320,7 +314,7 @@ export async function saveFAQ(id: string | undefined, data: { question: string; 
         data: { ...data, order: await prisma.fAQ.count() },
       });
   await logActivity({ userId: session.user.id, action: id ? "UPDATE" : "CREATE", entity: "FAQ", entityId: faq.id });
-  revalidateSite(["/faq"]);
+  revalidatePublicSite(["/faq"]);
   return { success: true, faq };
 }
 
@@ -328,7 +322,7 @@ export async function deleteFAQ(id: string) {
   const session = await requireAuth();
   await prisma.fAQ.delete({ where: { id } });
   await logActivity({ userId: session.user.id, action: "DELETE", entity: "FAQ", entityId: id });
-  revalidateSite(["/faq"]);
+  revalidatePublicSite(["/faq"]);
   return { success: true };
 }
 
@@ -337,7 +331,7 @@ export async function reorderFAQs(faqIds: string[]) {
   await Promise.all(
     faqIds.map((id, order) => prisma.fAQ.update({ where: { id }, data: { order } }))
   );
-  revalidateSite(["/faq"]);
+  revalidatePublicSite(["/faq"]);
   return { success: true };
 }
 
@@ -375,7 +369,7 @@ export async function saveBlogPost(
         },
       });
   await logActivity({ userId: session.user.id, action: id ? "UPDATE" : "CREATE", entity: "BlogPost", entityId: post.id });
-  revalidateSite(["/blog", `/blog/${slug}`]);
+  revalidatePublicSite(["/blog", `/blog/${slug}`]);
   return { success: true, post };
 }
 
@@ -383,7 +377,7 @@ export async function deleteBlogPost(id: string) {
   const session = await requireAuth();
   await prisma.blogPost.delete({ where: { id } });
   await logActivity({ userId: session.user.id, action: "DELETE", entity: "BlogPost", entityId: id });
-  revalidateSite(["/blog"]);
+  revalidatePublicSite(["/blog"]);
   return { success: true };
 }
 
@@ -408,7 +402,7 @@ export async function saveTestimonial(
     ? await prisma.testimonial.update({ where: { id }, data: payload })
     : await prisma.testimonial.create({ data: { ...payload, order: await prisma.testimonial.count() } });
   await logActivity({ userId: session.user.id, action: id ? "UPDATE" : "CREATE", entity: "Testimonial", entityId: t.id });
-  revalidateSite();
+  revalidatePublicSite();
   return { success: true, testimonial: t };
 }
 
@@ -416,7 +410,7 @@ export async function deleteTestimonial(id: string) {
   const session = await requireAuth();
   await prisma.testimonial.delete({ where: { id } });
   await logActivity({ userId: session.user.id, action: "DELETE", entity: "Testimonial", entityId: id });
-  revalidateSite();
+  revalidatePublicSite();
   return { success: true };
 }
 
@@ -427,7 +421,7 @@ export async function reorderTestimonials(testimonialIds: string[]) {
       prisma.testimonial.update({ where: { id }, data: { order } })
     )
   );
-  revalidateSite();
+  revalidatePublicSite();
   return { success: true };
 }
 
@@ -442,7 +436,7 @@ export async function saveCaseStudy(
     ? await prisma.caseStudy.update({ where: { id }, data: { ...data, slug: data.slug.toLowerCase() } })
     : await prisma.caseStudy.create({ data: { ...data, slug: data.slug.toLowerCase(), order: await prisma.caseStudy.count() } });
   await logActivity({ userId: session.user.id, action: id ? "UPDATE" : "CREATE", entity: "CaseStudy", entityId: cs.id });
-  revalidateSite();
+  revalidatePublicSite();
   return { success: true, caseStudy: cs };
 }
 
@@ -450,7 +444,7 @@ export async function deleteCaseStudy(id: string) {
   const session = await requireAuth();
   await prisma.caseStudy.delete({ where: { id } });
   await logActivity({ userId: session.user.id, action: "DELETE", entity: "CaseStudy", entityId: id });
-  revalidateSite();
+  revalidatePublicSite();
   return { success: true };
 }
 
@@ -461,7 +455,7 @@ export async function reorderCaseStudies(caseStudyIds: string[]) {
       prisma.caseStudy.update({ where: { id }, data: { order } })
     )
   );
-  revalidateSite();
+  revalidatePublicSite();
   return { success: true };
 }
 
@@ -485,21 +479,21 @@ export async function saveMenuItem(
           order: await prisma.menuItem.count({ where: { menuId, parentId: data.parentId || null } }),
         },
       });
-  revalidateSite();
+  revalidatePublicSite();
   return { success: true, item };
 }
 
 export async function deleteMenuItem(id: string) {
   await requireAuth();
   await prisma.menuItem.delete({ where: { id } });
-  revalidateSite();
+  revalidatePublicSite();
   return { success: true };
 }
 
 export async function reorderMenuItems(menuId: string, itemIds: string[]) {
   await requireAuth();
   await Promise.all(itemIds.map((id, order) => prisma.menuItem.update({ where: { id }, data: { order } })));
-  revalidateSite();
+  revalidatePublicSite();
   return { success: true };
 }
 
@@ -513,7 +507,7 @@ export async function updateSetting(key: string, value: unknown, group?: string)
     update: { value: value as Prisma.InputJsonValue, group },
   });
   await logActivity({ userId: session.user.id, action: "UPDATE", entity: "Setting", details: { key } });
-  revalidateSite();
+  revalidatePublicSite();
   return { success: true };
 }
 
@@ -540,7 +534,7 @@ export async function saveSettings(data: Record<string, string>) {
     )
   );
   await logActivity({ userId: session.user.id, action: "UPDATE", entity: "Setting", details: { keys: Object.keys(data) } });
-  revalidateSite();
+  revalidatePublicSite();
   return { success: true };
 }
 
@@ -566,6 +560,6 @@ export async function savePageSEO(
   });
   await logActivity({ userId: session.user.id, action: "UPDATE", entity: "SEO", entityId: seo.id });
   const page = await prisma.page.findUnique({ where: { id: pageId } });
-  revalidateSite(page ? [page.isHome ? "/" : `/${page.slug}`] : ["/"]);
+  revalidatePublicSite(page ? [page.isHome ? "/" : `/${page.slug}`] : ["/"]);
   return { success: true, seo };
 }

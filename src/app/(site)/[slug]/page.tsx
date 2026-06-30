@@ -1,8 +1,7 @@
 import { notFound } from "next/navigation";
 import { generatePageMetadata, CmsPageContent } from "@/components/site/cms-page";
 import { getPublishedPageSlugs } from "@/lib/cms";
-
-export const dynamic = "force-dynamic";
+export const revalidate = 120;
 
 const RESERVED = new Set(["blog", "admin", "api", "uploads", "case-studies"]);
 

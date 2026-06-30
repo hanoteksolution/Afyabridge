@@ -5,6 +5,7 @@ import { getPublishedCaseStudiesList } from "@/lib/cms";
 import { PageHero } from "@/components/site/page-hero";
 import { HEALTHCARE_IMAGES } from "@/lib/images";
 import type { Metadata } from "next";
+export const revalidate = 120;
 
 export const metadata: Metadata = {
   title: "Case Studies | Afya Bridge",

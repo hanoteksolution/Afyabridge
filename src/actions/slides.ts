@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePublicSite } from "@/lib/revalidate-site";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { logActivity } from "@/lib/activity";
@@ -9,12 +9,6 @@ async function requireAuth() {
   const session = await auth();
   if (!session?.user) throw new Error("Unauthorized");
   return session;
-}
-
-function revalidateSite(paths: string[] = ["/"]) {
-  const all = new Set(["/", ...paths, "/admin/slides"]);
-  for (const p of all) revalidatePath(p);
-  revalidatePath("/", "layout");
 }
 
 async function getHeroSectionId(): Promise<string | null> {
@@ -74,7 +68,7 @@ export async function createHeroSlide(data: SlideInput) {
     entity: "HeroSlide",
     entityId: slide.id,
   });
-  revalidateSite();
+  revalidatePublicSite(["/"]);
   return { success: true, slide };
 }
 
@@ -102,7 +96,7 @@ export async function updateHeroSlide(id: string, data: SlideInput) {
     entity: "HeroSlide",
     entityId: id,
   });
-  revalidateSite();
+  revalidatePublicSite(["/"]);
   return { success: true, slide };
 }
 
@@ -116,7 +110,7 @@ export async function toggleHeroSlideVisibility(id: string, isVisible: boolean) 
     entityId: id,
     details: { isVisible },
   });
-  revalidateSite();
+  revalidatePublicSite(["/"]);
   return { success: true };
 }
 
@@ -133,7 +127,7 @@ export async function reorderHeroSlides(slideIds: string[]) {
     entity: "HeroSlide",
     details: { slideIds },
   });
-  revalidateSite();
+  revalidatePublicSite(["/"]);
   return { success: true };
 }
 
@@ -146,6 +140,6 @@ export async function deleteHeroSlide(id: string) {
     entity: "HeroSlide",
     entityId: id,
   });
-  revalidateSite();
+  revalidatePublicSite(["/"]);
   return { success: true };
 }

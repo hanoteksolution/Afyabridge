@@ -1,13 +1,14 @@
 SHELL := /bin/sh
 NPM := npm
 
-.PHONY: help install dev dev-all build lint deploy deploy-install deploy-update db-generate db-dev db-restart db-push db-migrate db-seed db-studio db-reset db-sync-url
+.PHONY: help install setup dev dev-all build lint deploy deploy-install deploy-update db-generate db-dev db-restart db-push db-migrate db-seed db-reset db-studio db-sync-url
 
 help:
 	@echo Afya Bridge make targets
 	@echo.
 	@echo App:
 	@echo   make install       Install dependencies
+	@echo   make setup         First-time dev setup (DB + seed)
 	@echo   make dev           Run Next.js dev server
 	@echo   make dev-all       Restart local Prisma DB then run dev server
 	@echo   make build         Build production bundle
@@ -31,6 +32,9 @@ help:
 
 install:
 	$(NPM) install
+
+setup:
+	$(NPM) run setup
 
 dev:
 	$(NPM) run dev

@@ -6,9 +6,22 @@
 }
 
 {$DOMAIN:localhost} {
-	reverse_proxy app:3000
 	encode gzip
 	request_body {
 		max_size 25MB
 	}
+
+	@uploads path /uploads/*
+	handle @uploads {
+		reverse_proxy app:3000
+		header Cache-Control "public, max-age=31536000, immutable"
+	}
+
+	@static path /_next/static/*
+	handle @static {
+		reverse_proxy app:3000
+		header Cache-Control "public, max-age=31536000, immutable"
+	}
+
+	reverse_proxy app:3000
 }

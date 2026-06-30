@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { getCaseStudyBySlug } from "@/lib/cms";
 import { HEALTHCARE_IMAGES } from "@/lib/images";
 import type { Metadata } from "next";
+export const revalidate = 120;
 
 export async function generateMetadata({
   params,

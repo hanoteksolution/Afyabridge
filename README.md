@@ -1,104 +1,87 @@
 # Afya Bridge
 
-**Bridging Technology & Care** — A premium healthcare technology company website with a fully dynamic CMS admin platform.
+**Bridging Technology & Care** — Healthcare marketing website with a WordPress-style CMS admin.
 
-## Features
+**Repository:** https://github.com/hanoteksolution/Afyabridge
 
-### Public Website
-- 12 dynamic homepage sections (Hero, Trust Bar, Why Afya, Who We Serve, Platform Modules, Approach, Mission/Vision, Testimonials, Case Studies, Blog, CTA, Contact)
-- Fully CMS-driven — no hardcoded content
-- Premium enterprise design with Framer Motion animations
-- Blog with categories and SEO
-- Contact form with demo requests
-- Newsletter subscription
-- Dynamic sitemap, robots.txt, OpenGraph, JSON-LD structured data
+---
 
-### Admin CMS
-- Dashboard with analytics charts and lead tracking
-- Page builder with section management (reorder, duplicate, enable/disable)
-- Media library with drag & drop upload
-- SEO manager, menu builder, settings
-- Blog, testimonials, case studies CRUD
-- User & role management with RBAC
-- Activity audit logs
-- Lead pipeline (New → Contacted → Qualified → Converted → Closed)
+## New team member? (local development)
 
-## Quick Start
-
-### Prerequisites
-- Node.js 18+
-- PostgreSQL database
-
-### Setup
+One command after clone:
 
 ```bash
-# Install dependencies
-npm install
-
-# Configure environment
-cp .env.example .env
-# Edit .env with your database credentials
-
-# Option A: Use Prisma local Postgres
-npx prisma dev
-
-# Option B: Use your own PostgreSQL
-# Set DATABASE_URL and DIRECT_DATABASE_URL in .env
-
-# Push schema and seed data
-npm run db:push
-npm run db:seed
-
-# Start development server
+git clone https://github.com/hanoteksolution/Afyabridge.git
+cd Afyabridge
+npm run setup
 npm run dev
 ```
 
-### URLs
-- **Website:** http://localhost:3000
-- **Admin:** http://localhost:3000/admin/login
-- **Credentials:** `admin@afyabridge.com` / `admin123`
+| URL | Address |
+|-----|---------|
+| Website | http://localhost:3000 |
+| Admin | http://localhost:3000/admin/login |
+| Login | `admin@afyabridge.com` / `admin123` |
+
+`npm run setup` will:
+
+1. Install dependencies  
+2. Create `.env` from `env.development.example`  
+3. Start local PostgreSQL (Prisma dev)  
+4. Apply database schema  
+5. **Seed all company content** (pages, menus, homepage, blog, FAQs, admin user)
+
+Re-seed anytime:
+
+```bash
+npm run db:seed
+```
+
+Full reset (wipe DB + seed):
+
+```bash
+npm run db:reset
+```
+
+### Prerequisites
+
+- Node.js 20+
+- npm
+
+---
+
+## Server deployment (production)
+
+**Send this to your server team:** [DEPLOY.md](./DEPLOY.md)
+
+Quick summary on a Linux server with Docker:
+
+```bash
+git clone https://github.com/hanoteksolution/Afyabridge.git
+cd Afyabridge
+bash scripts/install-production.sh
+# Edit .env with your domain, then run the script again
+```
+
+---
 
 ## Scripts
 
 | Command | Description |
 |---------|-------------|
+| `npm run setup` | **First-time dev setup** (install + DB + seed) |
+| `npm run setup:dev` | Dev setup without `npm install` |
 | `npm run dev` | Start development server |
 | `npm run build` | Production build |
-| `npm run db:migrate` | Run database migrations |
+| `npm run db:seed` | Seed / refresh company content |
 | `npm run db:push` | Push schema to database |
-| `npm run db:seed` | Seed default content |
 | `npm run db:studio` | Open Prisma Studio |
+| `npm run deploy` | Production: `docker compose up -d --build` |
+| `npm run deploy:install` | Production first-time install script |
+| `npm run deploy:update` | Pull latest + rebuild containers |
 
-## Make Commands
+---
 
-If you prefer `make`, use these shortcuts:
+## Tech stack
 
-| Command | Description |
-|---------|-------------|
-| `make help` | List all available targets |
-| `make dev` | Start development server |
-| `make db-dev` | Start local Prisma Postgres |
-| `make db-restart` | Restart local Prisma Postgres |
-| `make db-push` | Push schema to database |
-| `make db-migrate` | Run database migrations |
-| `make db-seed` | Seed default content |
-| `make db-reset` | Reset DB and seed it |
-| `make db-studio` | Open Prisma Studio |
-
-## Architecture
-
-See [ARCHITECTURE.md](./ARCHITECTURE.md) for full project structure, database schema, API documentation, and CMS architecture.
-
-## Tech Stack
-
-Next.js 15+ · TypeScript · TailwindCSS · Shadcn UI · Framer Motion · Prisma · PostgreSQL · NextAuth · Cloudinary
-
-## Brand Colors
-
-| Color | Hex |
-|-------|-----|
-| Primary | `#0A1F78` |
-| Secondary | `#2563EB` |
-| Accent | `#00C2FF` |
-| Success | `#10B981` |
-| Background | `#F8FAFC` |
+Next.js 16 · TypeScript · TailwindCSS · Prisma · PostgreSQL · NextAuth · Docker · Caddy

@@ -1,10 +1,10 @@
-export const dynamic = "force-dynamic";
-
 import { Toaster } from "sonner";
 import { Header } from "@/components/website/header";
 import { Footer } from "@/components/website/footer";
 import { ThemeVariables } from "@/components/website/theme-variables";
 import { getMenuBySlug, getSettings } from "@/lib/cms";
+
+export const revalidate = 120;
 
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
   const headerMenu = await getMenuBySlug("header");
