@@ -22,25 +22,21 @@ if [[ ! -f .env ]]; then
   cp .env.example .env
 
   AUTH_SECRET="$(openssl rand -base64 32)"
-  POSTGRES_PASSWORD="$(openssl rand -base64 24 | tr -dc 'a-zA-Z0-9' | head -c 24)"
-
   if [[ "$(uname -s)" == "Darwin" ]]; then
     sed -i '' "s|^AUTH_SECRET=.*|AUTH_SECRET=\"${AUTH_SECRET}\"|" .env
-    sed -i '' "s|^POSTGRES_PASSWORD=.*|POSTGRES_PASSWORD=\"${POSTGRES_PASSWORD}\"|" .env
   else
     sed -i "s|^AUTH_SECRET=.*|AUTH_SECRET=\"${AUTH_SECRET}\"|" .env
-    sed -i "s|^POSTGRES_PASSWORD=.*|POSTGRES_PASSWORD=\"${POSTGRES_PASSWORD}\"|" .env
   fi
 
   echo ""
-  echo "Edit .env and set your DOMAIN, then run this script again:"
+  echo "Edit .env and set DOMAIN + DATABASE_URL + DIRECT_DATABASE_URL, then run this script again:"
   echo "  nano .env"
   echo ""
   exit 0
 fi
 
 # shellcheck disable=SC1091
-source <(grep -E '^(DOMAIN|NEXTAUTH_URL|NEXT_PUBLIC_SITE_URL)=' .env | sed 's/^/export /')
+source <(grep -E '^(DOMAIN|NEXTAUTH_URL|NEXT_PUBLIC_SITE_URL|DATABASE_URL|DIRECT_DATABASE_URL)=' .env | sed 's/^/export /')
 
 if [[ -z "${DOMAIN:-}" || "${DOMAIN}" == "your-domain.com" ]]; then
   echo "Set DOMAIN=your-real-domain.com in .env before continuing."
@@ -52,7 +48,17 @@ if grep -q 'your-domain.com' .env; then
   exit 1
 fi
 
-echo "==> Building and starting (app + database + HTTPS)..."
+if [[ -z "${DATABASE_URL:-}" || -z "${DIRECT_DATABASE_URL:-}" ]]; then
+  echo "Set DATABASE_URL and DIRECT_DATABASE_URL in .env before continuing."
+  exit 1
+fi
+
+if grep -q 'postgresql://doadmin:password@host:25060/defaultdb?sslmode=require' .env; then
+  echo "Replace placeholder database URLs in .env with your DigitalOcean Managed PostgreSQL connection strings."
+  exit 1
+fi
+
+echo "==> Building and starting (app + HTTPS, DB on DigitalOcean Managed PostgreSQL)..."
 docker compose up -d --build
 
 echo ""

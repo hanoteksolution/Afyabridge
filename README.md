@@ -60,7 +60,7 @@ Quick summary on a Linux server with Docker:
 git clone https://github.com/hanoteksolution/Afyabridge.git
 cd Afyabridge
 bash scripts/install-production.sh
-# Edit .env with your domain, then run the script again
+# Edit .env with your domain + DO Managed PostgreSQL URLs, then run the script again
 ```
 
 ---
