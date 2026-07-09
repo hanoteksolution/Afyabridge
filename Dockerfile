@@ -9,6 +9,12 @@ COPY package.json package-lock.json ./
 RUN npm install --no-audit --no-fund --ignore-scripts
 
 FROM base AS builder
+ARG DATABASE_URL
+ARG DIRECT_DATABASE_URL
+ARG NEXT_PUBLIC_SITE_URL
+ENV DATABASE_URL=${DATABASE_URL}
+ENV DIRECT_DATABASE_URL=${DIRECT_DATABASE_URL}
+ENV NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL}
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1

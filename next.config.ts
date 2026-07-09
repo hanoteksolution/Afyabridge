@@ -6,9 +6,6 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: process.env.SKIP_TYPESCRIPT_CHECK === "1",
   },
-  eslint: {
-    ignoreDuringBuilds: process.env.SKIP_TYPESCRIPT_CHECK === "1",
-  },
   images: {
     minimumCacheTTL: 60 * 60 * 24, // 24h — Next image optimizer cache
     remotePatterns: [
