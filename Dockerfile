@@ -5,8 +5,8 @@ WORKDIR /app
 
 FROM base AS deps
 COPY package.json package-lock.json ./
-# npm install (not ci) — lockfile optional deps differ between Windows dev and Linux Docker
-RUN npm install --no-audit --no-fund
+# ignore-scripts: postinstall runs prisma generate, but schema isn't copied yet
+RUN npm install --no-audit --no-fund --ignore-scripts
 
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
