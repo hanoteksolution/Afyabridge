@@ -2,6 +2,13 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  // Low-RAM Docker builds skip tsc here; types are checked in local/CI builds.
+  typescript: {
+    ignoreBuildErrors: process.env.SKIP_TYPESCRIPT_CHECK === "1",
+  },
+  eslint: {
+    ignoreDuringBuilds: process.env.SKIP_TYPESCRIPT_CHECK === "1",
+  },
   images: {
     minimumCacheTTL: 60 * 60 * 24, // 24h — Next image optimizer cache
     remotePatterns: [
