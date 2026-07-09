@@ -5,12 +5,14 @@ WORKDIR /app
 
 FROM base AS deps
 COPY package.json package-lock.json ./
-RUN npm ci
+# npm install (not ci) — lockfile optional deps differ between Windows dev and Linux Docker
+RUN npm install --no-audit --no-fund
 
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_OPTIONS=--max-old-space-size=384
 RUN npx prisma generate
 RUN npm run build
 
