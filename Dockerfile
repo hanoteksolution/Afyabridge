@@ -36,8 +36,19 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/scripts/docker-entrypoint.mjs ./scripts/docker-entrypoint.mjs
+
+# Minimal deps for db push/seed only — not the full builder node_modules (~500MB+)
+RUN npm install --no-audit --no-fund --ignore-scripts \
+    prisma@7.8.0 \
+    tsx@4.22.4 \
+    @prisma/client@7.8.0 \
+    @prisma/adapter-pg@7.8.0 \
+    pg@8.21.0 \
+    bcryptjs@3.0.3 \
+    dotenv@17.4.2 \
+  && npx prisma generate \
+  && chown -R nextjs:nodejs /app
 
 USER nextjs
 EXPOSE 3000
