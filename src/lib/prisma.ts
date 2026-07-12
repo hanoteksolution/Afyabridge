@@ -29,19 +29,39 @@ function getConnectionString() {
   return connectionString;
 }
 
-function isPoolEnded(pool: Pool) {
-  return Boolean((pool as Pool & { ended?: boolean }).ended);
-}
-
-function poolSsl(connectionString: string) {
-  if (
+function needsRelaxedSsl(connectionString: string) {
+  return (
     process.env.NODE_ENV === "production" ||
     connectionString.includes("sslmode=require") ||
     connectionString.includes("ondigitalocean.com")
-  ) {
+  );
+}
+
+/** Remove sslmode from URL so explicit Pool ssl options are not overridden by pg v8+. */
+function connectionStringForPool(connectionString: string) {
+  if (!needsRelaxedSsl(connectionString)) return connectionString;
+  try {
+    const parsed = new URL(connectionString);
+    parsed.searchParams.delete("sslmode");
+    parsed.searchParams.delete("ssl");
+    return parsed.toString();
+  } catch {
+    return connectionString
+      .replace(/[?&]sslmode=[^&]*/g, "")
+      .replace(/\?&/, "?")
+      .replace(/\?$/, "");
+  }
+}
+
+function poolSsl(connectionString: string) {
+  if (needsRelaxedSsl(connectionString)) {
     return { rejectUnauthorized: false };
   }
   return undefined;
+}
+
+function isPoolEnded(pool: Pool) {
+  return Boolean((pool as Pool & { ended?: boolean }).ended);
 }
 
 function getPool() {
@@ -49,7 +69,7 @@ function getPool() {
     const isDev = process.env.NODE_ENV === "development";
     const connectionString = getConnectionString();
     globalForPrisma.pgPool = new Pool({
-      connectionString,
+      connectionString: connectionStringForPool(connectionString),
       ssl: poolSsl(connectionString),
       max: isDev ? 1 : 10,
       idleTimeoutMillis: isDev ? 10_000 : 30_000,

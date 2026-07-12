@@ -55,6 +55,8 @@ echo "==> Applying schema + seed via temporary Node container..."
 docker run --rm \
   -e DATABASE_URL \
   -e DIRECT_DATABASE_URL \
+  -e NODE_ENV=production \
+  -e NODE_TLS_REJECT_UNAUTHORIZED=0 \
   -v "$ROOT/prisma:/app/prisma:ro" \
   -v "$ROOT/prisma.config.ts:/app/prisma.config.ts:ro" \
   -v "$ROOT/package.json:/app/package.json:ro" \

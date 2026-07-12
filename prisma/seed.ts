@@ -4,16 +4,37 @@ import { Pool } from "pg";
 import bcrypt from "bcryptjs";
 import { ensureAndBackfillMarketingPages, seedMarketingMenus } from "./seed-marketing-content";
 
-const connectionString = process.env.DIRECT_DATABASE_URL || process.env.DATABASE_URL!;
-const pool = new Pool({
-  connectionString,
-  ssl:
-    connectionString.includes("sslmode=require") ||
+const rawUrl = process.env.DIRECT_DATABASE_URL || process.env.DATABASE_URL!;
+
+/** DigitalOcean managed DB: strip sslmode from URL so Pool ssl options apply. */
+function createSeedPool(connectionString: string) {
+  const needsRelaxedSsl =
     connectionString.includes("ondigitalocean.com") ||
-    process.env.NODE_ENV === "production"
-      ? { rejectUnauthorized: false }
-      : undefined,
-});
+    connectionString.includes("sslmode=require") ||
+    process.env.NODE_ENV === "production";
+
+  let url = connectionString;
+  if (needsRelaxedSsl) {
+    try {
+      const parsed = new URL(connectionString);
+      parsed.searchParams.delete("sslmode");
+      parsed.searchParams.delete("ssl");
+      url = parsed.toString();
+    } catch {
+      url = connectionString
+        .replace(/[?&]sslmode=[^&]*/g, "")
+        .replace(/\?&/, "?")
+        .replace(/\?$/, "");
+    }
+  }
+
+  return new Pool({
+    connectionString: url,
+    ssl: needsRelaxedSsl ? { rejectUnauthorized: false } : undefined,
+  });
+}
+
+const pool = createSeedPool(rawUrl);
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
