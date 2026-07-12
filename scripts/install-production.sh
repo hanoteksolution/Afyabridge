@@ -58,9 +58,12 @@ if grep -q 'postgresql://doadmin:password@host:25060/defaultdb?sslmode=require' 
   exit 1
 fi
 
-echo "==> Freeing Docker disk space (important on small droplets)..."
-docker system prune -af >/dev/null 2>&1 || true
-docker builder prune -af >/dev/null 2>&1 || true
+export DOCKER_BUILDKIT=1
+export COMPOSE_DOCKER_CLI_BUILD=1
+
+# Soft cleanup only: dangling images. Do NOT wipe builder cache — that forces full rebuilds every time.
+echo "==> Removing unused dangling images (keeping build cache for faster updates)..."
+docker image prune -f >/dev/null 2>&1 || true
 
 echo "==> Building and starting (app + HTTPS, DB on DigitalOcean Managed PostgreSQL)..."
 docker compose up -d --build
@@ -88,4 +91,6 @@ echo "  Login: admin@afyabridge.com / admin123"
 echo "  (change password after first login)"
 echo "============================================"
 echo ""
-echo "Updates later: git pull && docker compose up -d --build"
+echo "Updates later (fast, cached rebuild):"
+echo "  bash scripts/deploy-droplet.sh"
+echo "  # or: make deploy-update"

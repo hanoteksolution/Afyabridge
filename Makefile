@@ -16,8 +16,8 @@ help:
 	@echo.
 	@echo Production (server — needs Docker):
 	@echo   make deploy-install  First-time install on Droplet
-	@echo   make deploy-update   Pull code and restart containers
-	@echo   make deploy          docker compose up -d --build
+	@echo   make deploy-update   Pull + rebuild app only (uses Docker/Next cache)
+	@echo   make deploy          Full compose up --build (first install / big changes)
 	@echo.
 	@echo Database (local dev only):
 	@echo   make db-generate   Run prisma generate

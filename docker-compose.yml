@@ -11,6 +11,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      # BuildKit is used by deploy scripts; layer + mount caches speed code-only updates
       args:
         DATABASE_URL: ${DATABASE_URL}
         DIRECT_DATABASE_URL: ${DIRECT_DATABASE_URL}

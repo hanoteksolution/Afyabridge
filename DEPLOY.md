@@ -123,18 +123,29 @@ Change this password immediately after the first login.
 
 ## 5. Deploying Updates
 
-When a new version is released:
+Code-only updates should reuse Docker layers and the Next.js compile cache (much faster than a clean build).
 
 ```bash
 cd Afyabridge
-git pull
-docker compose up -d --build
+bash scripts/deploy-droplet.sh
 ```
 
-Alternatively:
+Or:
 
 ```bash
-bash scripts/deploy-droplet.sh
+make deploy-update
+```
+
+This pulls git, rebuilds **only the `app` image** (keeps npm/`node_modules` and Next.js caches when possible), and restarts the app without rebuilding Caddy.
+
+**Do not** run `docker builder prune -af` or `docker system prune -af` before routine updates — that deletes the cache and forces a full rebuild every time. Use those only when the droplet is critically low on disk.
+
+When a new version is released and you prefer the manual path:
+
+```bash
+git pull
+DOCKER_BUILDKIT=1 docker compose build app
+docker compose up -d --no-deps app
 ```
 
 ---
@@ -200,9 +211,11 @@ Database backups, point-in-time recovery, monitoring, and maintenance are handle
 # Apply schema + seed (safe upserts; uses a temporary container)
 bash scripts/init-production-db.sh
 
-# Free disk after failed builds (small droplets)
-docker system prune -af
-docker builder prune -af
+# Free disk when critically full (wipes build cache — next deploy will be slow)
+docker image prune -af
+# Only if still needed:
+# docker builder prune -af
+# docker system prune -af
 
 # Stop all services
 docker compose down
