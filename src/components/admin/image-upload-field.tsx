@@ -52,7 +52,7 @@ export function ImageUploadField({ value, onChange, label = "Slide Image" }: Ima
       {value ? (
         <div className="mt-2 flex items-start gap-4 rounded-xl border border-slate-200 bg-slate-50 p-3">
           <div className="relative h-24 w-40 shrink-0 overflow-hidden rounded-lg bg-white ring-1 ring-slate-200">
-            <Image src={value} alt="Slide preview" fill className="object-cover" />
+            <Image src={value} alt="Slide preview" fill className="object-cover" unoptimized />
           </div>
           <div className="flex flex-1 flex-col gap-2">
             <p className="truncate text-xs text-slate-500">{value}</p>

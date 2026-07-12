@@ -7,7 +7,10 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: process.env.SKIP_TYPESCRIPT_CHECK === "1",
   },
   images: {
-    minimumCacheTTL: 60 * 60 * 24, // 24h — Next image optimizer cache
+    // Local uploads + low-RAM droplet: skip optimizer (avoids 400 / DNS failures for remote images)
+    unoptimized: true,
+    minimumCacheTTL: 60 * 60 * 24,
+    localPatterns: [{ pathname: "/uploads/**" }],
     remotePatterns: [
       { protocol: "https", hostname: "res.cloudinary.com" },
       { protocol: "https", hostname: "**.cloudinary.com" },
