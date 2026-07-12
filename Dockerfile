@@ -29,16 +29,23 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 WORKDIR /app
 
-RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
+RUN apk add --no-cache su-exec \
+  && addgroup --system --gid 1001 nodejs \
+  && adduser --system --uid 1001 nextjs
 
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/scripts/docker-entrypoint.mjs ./scripts/docker-entrypoint.mjs
+COPY --from=builder /app/scripts/docker-start.sh ./scripts/docker-start.sh
+RUN chmod +x ./scripts/docker-start.sh \
+  && mkdir -p /app/public/uploads \
+  && chown -R nextjs:nodejs /app/public/uploads
 
-USER nextjs
+# Start as root so we can chown the uploads volume, then drop to nextjs
+USER root
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 
-CMD ["node", "scripts/docker-entrypoint.mjs"]
+CMD ["sh", "./scripts/docker-start.sh"]
