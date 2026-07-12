@@ -11,9 +11,50 @@ if [[ ! -f .env ]]; then
   exit 1
 fi
 
+# Docker --env-file keeps literal quotes; strip them for Prisma.
+read_env() {
+  local key="$1"
+  local line
+  line="$(grep -E "^${key}=" .env | tail -n1 || true)"
+  if [[ -z "$line" ]]; then
+    echo ""
+    return
+  fi
+  local value="${line#*=}"
+  value="${value%$'\r'}"
+  value="${value#\"}"
+  value="${value%\"}"
+  value="${value#\'}"
+  value="${value%\'}"
+  printf '%s' "$value"
+}
+
+DATABASE_URL="$(read_env DATABASE_URL)"
+DIRECT_DATABASE_URL="$(read_env DIRECT_DATABASE_URL)"
+
+if [[ -z "$DATABASE_URL" && -z "$DIRECT_DATABASE_URL" ]]; then
+  echo "DATABASE_URL / DIRECT_DATABASE_URL missing in .env"
+  exit 1
+fi
+
+# Prefer DIRECT for Prisma CLI
+export DATABASE_URL="${DIRECT_DATABASE_URL:-$DATABASE_URL}"
+export DIRECT_DATABASE_URL="${DIRECT_DATABASE_URL:-$DATABASE_URL}"
+
+echo "==> DB host check (scheme must be postgresql://)..."
+echo "DATABASE_URL starts with: ${DATABASE_URL%%://*}://"
+
+if [[ "$DATABASE_URL" != postgresql://* && "$DATABASE_URL" != postgres://* ]]; then
+  echo "Invalid DATABASE_URL scheme. Edit .env — use no quotes around the URL."
+  echo "Example:"
+  echo "DATABASE_URL=postgresql://user:pass@host:25060/db?sslmode=require"
+  exit 1
+fi
+
 echo "==> Applying schema + seed via temporary Node container..."
 docker run --rm \
-  --env-file .env \
+  -e DATABASE_URL \
+  -e DIRECT_DATABASE_URL \
   -v "$ROOT/prisma:/app/prisma:ro" \
   -v "$ROOT/prisma.config.ts:/app/prisma.config.ts:ro" \
   -v "$ROOT/package.json:/app/package.json:ro" \
