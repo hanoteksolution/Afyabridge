@@ -8,6 +8,7 @@ node_modules
 *.md
 .cursor
 terminals
+data
 public/uploads
 uploads
 coverage

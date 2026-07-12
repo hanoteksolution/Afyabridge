@@ -197,7 +197,7 @@ For high-traffic production environments, configure **Cloudinary** under Admin â
 
 ## 8. Media and Backup Ownership
 
-Uploaded files are stored in the Docker volume `uploads`, mounted at `/app/public/uploads` inside the application container.
+Uploaded files are stored in the Docker volume `uploads`, mounted at `/app/data/uploads` inside the application container, and served by the app at `/uploads/*`.
 
 Include the `uploads` volume in your droplet backup strategy for locally stored media.
 

@@ -144,9 +144,7 @@ function LoginForm() {
         resolveCallbackUrl(searchParams.get("callbackUrl"))
       );
     } catch {
-      setError(
-        "Connection error. Start the database with npm run db:dev, then retry."
-      );
+      setError("Connection error. Please try again in a moment.");
     } finally {
       setLoading(false);
     }
@@ -200,7 +198,7 @@ function LoginForm() {
                 autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@afyabridge.com"
+                placeholder="you@company.com"
                 className="h-12 rounded-2xl border-white/10 bg-white/[0.06] pl-11 text-white placeholder:text-white/30 shadow-inner shadow-black/10 focus-visible:border-sky-400/40 focus-visible:ring-sky-400/20"
                 required
                 disabled={loading}
@@ -285,12 +283,6 @@ function LoginForm() {
             </span>
           ))}
         </div>
-
-        <p className="relative mt-5 text-center text-[11px] text-white/35">
-          Dev:{" "}
-          <span className="text-white/50">admin@afyabridge.com</span> /{" "}
-          <span className="text-white/50">admin123</span>
-        </p>
       </div>
     </motion.div>
   );

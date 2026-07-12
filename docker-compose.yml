@@ -21,8 +21,9 @@ services:
     environment:
       NODE_ENV: production
       NODE_TLS_REJECT_UNAUTHORIZED: "0"
+      UPLOAD_DIR: /app/data/uploads
     volumes:
-      - uploads:/app/public/uploads
+      - uploads:/app/data/uploads
     expose:
       - "3000"
 

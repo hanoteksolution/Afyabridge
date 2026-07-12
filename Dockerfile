@@ -52,8 +52,8 @@ COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/scripts/docker-entrypoint.mjs ./scripts/docker-entrypoint.mjs
 COPY --from=builder /app/scripts/docker-start.sh ./scripts/docker-start.sh
 RUN chmod +x ./scripts/docker-start.sh \
-  && mkdir -p /app/public/uploads \
-  && chown -R nextjs:nodejs /app/public/uploads
+  && mkdir -p /app/data/uploads \
+  && chown -R nextjs:nodejs /app/data/uploads
 
 USER root
 EXPOSE 3000

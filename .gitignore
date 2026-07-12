@@ -44,4 +44,5 @@ next-env.d.ts
 
 # local dev / uploads
 /public/uploads/
+/data/uploads/
 sync-test.txt
