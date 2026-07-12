@@ -58,6 +58,10 @@ if grep -q 'postgresql://doadmin:password@host:25060/defaultdb?sslmode=require' 
   exit 1
 fi
 
+echo "==> Freeing Docker disk space (important on small droplets)..."
+docker system prune -af >/dev/null 2>&1 || true
+docker builder prune -af >/dev/null 2>&1 || true
+
 echo "==> Building and starting (app + HTTPS, DB on DigitalOcean Managed PostgreSQL)..."
 docker compose up -d --build
 
@@ -71,6 +75,10 @@ if curl -fsS "http://127.0.0.1/api/v1/health" >/dev/null 2>&1 || \
 else
   echo "Still starting — check logs: docker compose logs -f app"
 fi
+
+echo ""
+echo "==> First-time database schema + seed (temporary container)..."
+bash scripts/init-production-db.sh || echo "DB init skipped/failed — run: bash scripts/init-production-db.sh"
 
 echo ""
 echo "============================================"

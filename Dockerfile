@@ -1,4 +1,5 @@
 # Production image for DigitalOcean Droplet / Docker
+# Slim runner: Next.js standalone only (no second npm install — saves disk on small droplets)
 FROM node:20-alpine AS base
 RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
@@ -32,23 +33,8 @@ RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/scripts/docker-entrypoint.mjs ./scripts/docker-entrypoint.mjs
-
-# Minimal deps for db push/seed only — not the full builder node_modules (~500MB+)
-RUN npm install --no-audit --no-fund --ignore-scripts \
-    prisma@7.8.0 \
-    tsx@4.22.4 \
-    @prisma/client@7.8.0 \
-    @prisma/adapter-pg@7.8.0 \
-    pg@8.21.0 \
-    bcryptjs@3.0.3 \
-    dotenv@17.4.2 \
-  && npx prisma generate \
-  && chown -R nextjs:nodejs /app
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/scripts/docker-entrypoint.mjs ./scripts/docker-entrypoint.mjs
 
 USER nextjs
 EXPOSE 3000

@@ -18,7 +18,7 @@ Afya Bridge is deployed as a containerized application. The production stack con
 
 No Node.js, Nginx, or PostgreSQL installation is required on the droplet. Docker and Docker Compose are the only prerequisites.
 
-On first startup, the application automatically applies the database schema and seeds default content (pages, menus, admin user) when the database is empty.
+After containers start, run `bash scripts/init-production-db.sh` once to apply the database schema and seed default content (pages, menus, admin user). The install script does this automatically.
 
 ---
 
@@ -197,8 +197,12 @@ Database backups, point-in-time recovery, monitoring, and maintenance are handle
 ## 9. Operational Commands
 
 ```bash
-# Re-run database seed (safe — uses upserts)
-docker compose exec app npx prisma db seed
+# Apply schema + seed (safe upserts; uses a temporary container)
+bash scripts/init-production-db.sh
+
+# Free disk after failed builds (small droplets)
+docker system prune -af
+docker builder prune -af
 
 # Stop all services
 docker compose down
