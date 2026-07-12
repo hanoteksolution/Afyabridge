@@ -1,10 +1,20 @@
 import { PrismaClient, SectionType } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool } from "pg";
 import bcrypt from "bcryptjs";
 import { ensureAndBackfillMarketingPages, seedMarketingMenus } from "./seed-marketing-content";
 
 const connectionString = process.env.DIRECT_DATABASE_URL || process.env.DATABASE_URL!;
-const adapter = new PrismaPg({ connectionString });
+const pool = new Pool({
+  connectionString,
+  ssl:
+    connectionString.includes("sslmode=require") ||
+    connectionString.includes("ondigitalocean.com") ||
+    process.env.NODE_ENV === "production"
+      ? { rejectUnauthorized: false }
+      : undefined,
+});
+const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
