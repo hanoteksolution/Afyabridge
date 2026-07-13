@@ -12,6 +12,13 @@ export type ApiEndpoint = {
 export const API_ENDPOINTS: ApiEndpoint[] = [
   {
     method: "GET",
+    path: "/api/v1/content-revision",
+    description: "Content revision stamp for live public-site refresh",
+    auth: "public",
+    tags: ["system"],
+  },
+  {
+    method: "GET",
     path: "/api/v1/health",
     description: "Database and API health check",
     auth: "public",

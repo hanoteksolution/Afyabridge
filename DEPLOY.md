@@ -178,12 +178,12 @@ The production build is configured for fast page loads and efficient delivery of
 |-------|-----------|
 | **Public pages** | Regenerated at most every 2 minutes |
 | **CMS data** | Cached in memory; TTL controlled by `CMS_REVALIDATE_SECONDS` |
-| **Admin changes** | Cache is cleared immediately when content is saved in the admin panel |
+| **Admin changes** | Cache cleared immediately; public tabs soft-refresh within ~4 seconds |
 | **Uploaded media** (`/uploads/*`) | Long-term browser cache (1 year) |
 | **Static assets** (`/_next/static/*`) | Long-term browser cache (1 year) |
 | **Optimized images** | 24-hour cache via the Next.js image optimizer |
 
-Visitors see admin updates within seconds. No container restart is required after content changes.
+Visitors see admin updates within a few seconds on open tabs (live soft-refresh). A full browser reload is not required after content changes.
 
 ### 7.2 Development vs production
 

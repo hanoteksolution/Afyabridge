@@ -2,6 +2,7 @@ import { Toaster } from "sonner";
 import { Header } from "@/components/website/header";
 import { Footer } from "@/components/website/footer";
 import { ThemeVariables } from "@/components/website/theme-variables";
+import { LiveContentRefresh } from "@/components/website/live-content-refresh";
 import { getMenuBySlug, getSettings } from "@/lib/cms";
 
 export const revalidate = 120;
@@ -42,6 +43,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
       <Header menuItems={headerItems} settings={settings} />
       <main className="flex-1">{children}</main>
       <Footer footerNav={footerItems} settings={settings} />
+      <LiveContentRefresh />
       <Toaster position="top-right" richColors />
     </>
   );
