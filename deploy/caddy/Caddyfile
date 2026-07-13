@@ -1,14 +1,21 @@
 # Automatic HTTPS when DOMAIN is a real domain (set ACME_EMAIL in .env).
+# Serves apex + www on HTTPS; www redirects to apex.
 # IP-only access stays on plain HTTP for health checks.
 
 {
 	email {$ACME_EMAIL}
 }
 
-{$DOMAIN:localhost} {
+{$DOMAIN:localhost}, www.{$DOMAIN:localhost} {
 	encode gzip
 	request_body {
 		max_size 25MB
+	}
+
+	# www → apex (canonical URL)
+	@www host www.{$DOMAIN:localhost}
+	handle @www {
+		redir https://{$DOMAIN}{uri} permanent
 	}
 
 	@uploads path /uploads/*
@@ -24,11 +31,6 @@
 	}
 
 	reverse_proxy app:3000
-}
-
-# Optional: redirect www → apex (add DNS CNAME www → @ first)
-www.{$DOMAIN:localhost} {
-	redir https://{$DOMAIN}{uri} permanent
 }
 
 # Catch-all HTTP by IP / localhost (pre-DNS or health checks)

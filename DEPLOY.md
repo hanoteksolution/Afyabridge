@@ -144,9 +144,19 @@ The script sets `NEXTAUTH_URL` and `NEXT_PUBLIC_SITE_URL` to `https://your-domai
 
 **Requirements**
 
-- DNS A record for `afyabridge.com` → droplet IP (propagated)
+- DNS A record for `afyabridge.com` → droplet IP (`139.59.143.35`)
+- DNS A record (or CNAME) for `www.afyabridge.com` → same droplet IP
 - Ports **80** and **443** open on the droplet firewall
 - Valid `ACME_EMAIL` in `.env`
+
+**Diagnose**
+
+```bash
+bash scripts/check-ssl.sh
+docker compose logs caddy
+```
+
+If the browser shows **“Not secure”** on `www.afyabridge.com`, DNS for `www` is usually still pointing at the old host (e.g. Squarespace `198.49.x.x`) instead of the droplet. Update both `@` and `www` A records at your registrar, wait for propagation, then run `bash scripts/enable-ssl.sh` again.
 
 **Verify**
 
@@ -268,7 +278,7 @@ docker compose down -v
 | Symptom | Recommended action |
 |---------|-------------------|
 | Site does not load | Run `docker compose ps` and confirm all services are `running` |
-| SSL certificate error | Verify DNS A record points to this server; confirm ports 80 and 443 are open |
+| SSL certificate error | Run `bash scripts/check-ssl.sh`. Ensure `@` and `www` A records point to the droplet IP (not old Squarespace IPs). Open ports 80/443. |
 | 502 Bad Gateway | Run `docker compose logs app` and wait for the application to finish starting |
 | Database connection errors | Verify managed DB host/user/password/SSL settings; then run `docker compose restart app` |
 | Health check fails | Inspect `docker compose logs -f app` for Prisma or startup errors |
