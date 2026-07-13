@@ -1,7 +1,7 @@
 SHELL := /bin/sh
 NPM := npm
 
-.PHONY: help install setup dev dev-all build lint deploy deploy-install deploy-update db-generate db-dev db-restart db-push db-migrate db-seed db-reset db-studio db-sync-url
+.PHONY: help install setup dev dev-all build lint deploy deploy-install deploy-update deploy-ssl db-generate db-dev db-restart db-push db-migrate db-seed db-reset db-studio db-sync-url
 
 help:
 	@echo Afya Bridge make targets
@@ -17,6 +17,7 @@ help:
 	@echo Production (server — needs Docker):
 	@echo   make deploy-install  First-time install on Droplet
 	@echo   make deploy-update   Pull + rebuild app only (uses Docker/Next cache)
+	@echo   make deploy-ssl      Enable HTTPS after DNS points to droplet
 	@echo   make deploy          Full compose up --build (first install / big changes)
 	@echo.
 	@echo Database (local dev only):
@@ -56,6 +57,9 @@ deploy-install:
 
 deploy-update:
 	bash scripts/deploy-droplet.sh
+
+deploy-ssl:
+	bash scripts/enable-ssl.sh
 
 db-generate:
 	$(NPM) run db:generate

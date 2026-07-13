@@ -121,7 +121,44 @@ Change this password immediately after the first login.
 
 ---
 
-## 5. Deploying Updates
+## 5. Enable HTTPS (after DNS points to the droplet)
+
+When your domain A record points to the droplet IP:
+
+1. Edit `.env` on the server:
+
+```env
+DOMAIN=afyabridge.com
+ACME_EMAIL=admin@afyabridge.com
+```
+
+2. Run the SSL script (updates URLs, rebuilds app, restarts Caddy for Let's Encrypt):
+
+```bash
+bash scripts/enable-ssl.sh
+```
+
+Or: `make deploy-ssl`
+
+The script sets `NEXTAUTH_URL` and `NEXT_PUBLIC_SITE_URL` to `https://your-domain.com`, rebuilds the app, and restarts Caddy. Caddy requests a free certificate automatically.
+
+**Requirements**
+
+- DNS A record for `afyabridge.com` → droplet IP (propagated)
+- Ports **80** and **443** open on the droplet firewall
+- Valid `ACME_EMAIL` in `.env`
+
+**Verify**
+
+```bash
+curl -I https://afyabridge.com/api/v1/health
+```
+
+Browser should show a padlock (no “Not secure”).
+
+---
+
+## 6. Deploying Updates
 
 Code-only updates should reuse Docker layers and the Next.js compile cache (much faster than a clean build).
 
@@ -150,7 +187,7 @@ docker compose up -d --no-deps app
 
 ---
 
-## 6. Environment Variables Reference
+## 7. Environment Variables Reference
 
 | Variable | Required | Description |
 |----------|----------|-------------|
@@ -168,11 +205,11 @@ Use `.env.example` as the template. **Do not commit `.env` to version control.**
 
 ---
 
-## 7. Performance and Caching
+## 8. Performance and Caching
 
 The production build is configured for fast page loads and efficient delivery of images and static assets.
 
-### 7.1 How caching works
+### 8.1 How caching works
 
 | Layer | Behaviour |
 |-------|-----------|
@@ -185,17 +222,17 @@ The production build is configured for fast page loads and efficient delivery of
 
 Visitors see admin updates within a few seconds on open tabs (live soft-refresh). A full browser reload is not required after content changes.
 
-### 7.2 Development vs production
+### 8.2 Development vs production
 
 Caching is **disabled in local development** so editors always see live data. Caching applies only when `NODE_ENV=production` (Docker deployment).
 
-### 7.3 Media at scale
+### 8.3 Media at scale
 
 For high-traffic production environments, configure **Cloudinary** under Admin → Settings for CDN-backed image delivery.
 
 ---
 
-## 8. Media and Backup Ownership
+## 9. Media and Backup Ownership
 
 Uploaded files are stored in the Docker volume `uploads`, mounted at `/app/data/uploads` inside the application container, and served by the app at `/uploads/*`.
 
@@ -205,7 +242,7 @@ Database backups, point-in-time recovery, monitoring, and maintenance are handle
 
 ---
 
-## 9. Operational Commands
+## 10. Operational Commands
 
 ```bash
 # Apply schema + seed (safe upserts; uses a temporary container)
@@ -226,7 +263,7 @@ docker compose down -v
 
 ---
 
-## 10. Troubleshooting
+## 11. Troubleshooting
 
 | Symptom | Recommended action |
 |---------|-------------------|
@@ -239,7 +276,7 @@ docker compose down -v
 
 ---
 
-## 11. Local Development (Reference)
+## 12. Local Development (Reference)
 
 Developers work on laptops using Node.js, not Docker. After cloning the repository:
 
@@ -252,7 +289,7 @@ See `README.md` for full developer documentation. This workflow is separate from
 
 ---
 
-## 12. Support
+## 13. Support
 
 - **Repository:** https://github.com/hanoteksolution/Afyabridge  
 - **Admin login:** `/admin/login`  

@@ -69,6 +69,13 @@ export function Header({
     setOpenMenu(null);
   }, [pathname]);
 
+  useEffect(() => {
+    document.body.style.overflow = mobileOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileOpen]);
+
   const isActive = (href: string) =>
     pathname === href || (href !== "/" && pathname.startsWith(href));
 
@@ -85,7 +92,7 @@ export function Header({
       <div
         className={cn(
           "overflow-hidden transition-all duration-300",
-          isScrolled ? "max-h-0 opacity-0" : "max-h-20 opacity-100"
+          isScrolled ? "max-h-0 opacity-0" : "max-h-24 opacity-100 sm:max-h-20"
         )}
       >
         <TopBar settings={settings} />
@@ -100,13 +107,14 @@ export function Header({
             : "shadow-sm"
         )}
       >
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-          <Link href="/">
+        <div className="mx-auto flex h-14 min-h-14 max-w-7xl items-center justify-between gap-3 px-4 sm:h-16 sm:gap-4 sm:px-6 lg:px-8">
+          <Link href="/" className="min-w-0 shrink">
             <SiteLogo
               name={site.site_name}
               logoUrl={site.site_logo || undefined}
               showTagline={!isHome}
               tagline={site.site_tagline || "Bridging Technology & Care"}
+              className="max-w-[140px] sm:max-w-none"
             />
           </Link>
 
@@ -145,7 +153,6 @@ export function Header({
                       {item.label}
                     </Link>
                   )}
-
                 </li>
               ))}
             </ul>
@@ -182,9 +189,10 @@ export function Header({
           </div>
 
           <button
-            className="rounded-lg p-2 text-[#001A41] lg:hidden"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-[#001A41] transition hover:bg-slate-100 lg:hidden"
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-label="Toggle menu"
+            aria-expanded={mobileOpen}
           >
             {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
@@ -208,7 +216,7 @@ export function Header({
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              className="border-t border-slate-100 bg-white lg:hidden"
+              className="max-h-[calc(100dvh-3.5rem)] overflow-y-auto border-t border-slate-100 bg-white sm:max-h-[calc(100dvh-4rem)] lg:hidden"
             >
               <nav aria-label="Mobile navigation" className="p-4">
                 <ul className="flex list-none flex-col gap-1 p-0 m-0">
@@ -238,10 +246,19 @@ export function Header({
                     </li>
                   ))}
                 </ul>
-                <div className="mt-3 px-4">
+                <div className="mt-3 space-y-2 px-4 pb-2">
+                  {site.watch_demo_text && (
+                    <Link
+                      href={site.watch_demo_link || "/contact"}
+                      className="block rounded-lg border border-slate-200 px-4 py-3 text-center text-sm font-semibold text-[#001A41]"
+                    >
+                      {site.watch_demo_text}
+                    </Link>
+                  )}
                   <DiscoverButton
                     href={site.request_demo_link || "/contact"}
                     label={site.request_demo_text || "Request Demo"}
+                    className="w-full justify-center"
                   />
                 </div>
               </nav>

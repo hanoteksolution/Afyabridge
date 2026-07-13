@@ -16,21 +16,24 @@ export function TopBar({ settings = {} }: { settings?: Record<string, unknown> }
 
   return (
     <div className="bg-[#001A41] text-white">
-      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-2.5 text-xs sm:px-6 lg:px-8">
-        <div className="flex flex-wrap items-center gap-4 sm:gap-6">
-          <span className="flex items-center gap-1.5 text-white/90">
-            <MapPin className="h-3.5 w-3.5 shrink-0 text-[#3B82F6]" />
-            {site.address}
+      <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-2 text-[11px] sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-3 sm:px-6 sm:text-xs lg:px-8">
+        <div className="flex min-w-0 flex-col gap-1.5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-5 sm:gap-y-1">
+          <span className="flex min-w-0 items-start gap-1.5 text-white/90 sm:items-center">
+            <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#3B82F6] sm:mt-0" />
+            <span className="line-clamp-2 sm:line-clamp-1">{site.address}</span>
           </span>
-          <span className="flex items-center gap-1.5 text-white/90">
+          <a
+            href={`mailto:${site.contact_email}`}
+            className="flex min-w-0 items-center gap-1.5 truncate text-white/90 transition hover:text-white"
+          >
             <Mail className="h-3.5 w-3.5 shrink-0 text-[#3B82F6]" />
-            {site.contact_email}
-          </span>
+            <span className="truncate">{site.contact_email}</span>
+          </a>
         </div>
         {socials.length > 0 && (
-          <div className="flex items-center gap-3">
-            <span className="text-white/70">Follow Us On :</span>
-            <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+            <span className="hidden text-white/70 sm:inline">Follow Us On :</span>
+            <div className="flex items-center gap-1.5 sm:gap-2">
               {socials.map(({ platform, url }) => (
                 <a
                   key={platform}

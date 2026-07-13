@@ -78,16 +78,26 @@ function HeroSlideVisual({
   slide,
   index,
   floatingCard,
+  compact = false,
 }: {
   slide: SlideData;
   index: number;
   floatingCard?: { title: string; description?: string };
+  compact?: boolean;
 }) {
   if (slide.image) {
     return (
       <div className="relative h-full w-full">
-        <div className="absolute -inset-6 rounded-[40px] bg-gradient-to-tr from-[#2D7FF9]/30 via-[#00C2FF]/20 to-transparent blur-3xl" />
-        <div className="relative h-full overflow-hidden rounded-[32px] border border-white/25 bg-white/10 shadow-[0_40px_100px_rgba(0,0,0,0.4)] backdrop-blur-2xl">
+        {!compact && (
+          <div className="absolute -inset-4 rounded-[32px] bg-gradient-to-tr from-[#2D7FF9]/30 via-[#00C2FF]/20 to-transparent blur-2xl sm:-inset-6 sm:rounded-[40px] sm:blur-3xl" />
+        )}
+        <div
+          className={
+            compact
+              ? "relative h-full overflow-hidden rounded-2xl border border-white/20 bg-white/10 shadow-xl"
+              : "relative h-full overflow-hidden rounded-[24px] border border-white/25 bg-white/10 shadow-[0_40px_100px_rgba(0,0,0,0.4)] backdrop-blur-2xl sm:rounded-[32px]"
+          }
+        >
           <Image
             src={slide.image}
             alt={slide.title}
@@ -96,9 +106,9 @@ function HeroSlideVisual({
             className="object-cover"
             sizes="(max-width: 1024px) 100vw, 55vw"
           />
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#041B52]/40 via-transparent to-transparent" />
-          {floatingCard?.title && (
-            <div className="absolute bottom-6 left-6 right-6 rounded-2xl border border-white/20 bg-white/10 p-4 backdrop-blur-xl">
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#041B52]/50 via-transparent to-transparent" />
+          {floatingCard?.title && !compact && (
+            <div className="absolute bottom-4 left-4 right-4 rounded-2xl border border-white/20 bg-white/10 p-3 backdrop-blur-xl sm:bottom-6 sm:left-6 sm:right-6 sm:p-4">
               <div className="text-sm font-bold text-white">{floatingCard.title}</div>
               {floatingCard.description && (
                 <p className="mt-1 text-xs text-blue-100/80">{floatingCard.description}</p>
@@ -113,8 +123,8 @@ function HeroSlideVisual({
   if (slide.videoUrl) {
     return (
       <div className="relative h-full w-full">
-        <div className="absolute -inset-6 rounded-[40px] bg-gradient-to-tr from-[#2D7FF9]/30 via-[#00C2FF]/20 to-transparent blur-3xl" />
-        <div className="relative h-full overflow-hidden rounded-[32px] border border-white/25 bg-black/40 shadow-[0_40px_100px_rgba(0,0,0,0.4)] backdrop-blur-2xl">
+        <div className="absolute -inset-4 rounded-[32px] bg-gradient-to-tr from-[#2D7FF9]/30 via-[#00C2FF]/20 to-transparent blur-2xl sm:-inset-6 sm:blur-3xl" />
+        <div className="relative h-full overflow-hidden rounded-[24px] border border-white/25 bg-black/40 shadow-[0_40px_100px_rgba(0,0,0,0.4)] backdrop-blur-2xl sm:rounded-[32px]">
           <iframe
             src={slide.videoUrl}
             title={slide.title}
@@ -185,36 +195,59 @@ export function HeroSection({ section }: HeroSectionProps) {
         </>
       )}
 
-      <div className="relative mx-auto h-[min(750px,90vh)] max-w-[1440px] px-4 sm:h-[800px] sm:px-6 lg:px-10">
-        <div className="grid h-full grid-cols-1 items-center gap-8 py-10 lg:grid-cols-[45%_55%] lg:gap-6 lg:py-14">
+      <div className="relative mx-auto min-h-0 max-w-[1440px] px-4 py-8 sm:px-6 sm:py-10 lg:h-[800px] lg:px-10 lg:py-14">
+        <div className="grid grid-cols-1 items-center gap-6 lg:h-full lg:grid-cols-[45%_55%] lg:gap-6">
           <div className="relative z-10 flex flex-col justify-center">
             <AnimatePresence mode="wait">
               <motion.div
                 key={slide.id}
-                initial={{ opacity: 0, x: -30 }}
+                initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                transition={{ duration: 0.5 }}
+                exit={{ opacity: 0, x: 16 }}
+                transition={{ duration: 0.45 }}
               >
-                <div className="inline-flex items-center gap-2 rounded-full border border-[#2563EB]/40 bg-[#2563EB]/20 px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-blue-100">
-                  <Shield className="h-3.5 w-3.5 text-[#60A5FA]" />
-                  {slide.badge || "Trusted by 500+ healthcare facilities across East Africa"}
+                <div className="inline-flex max-w-full items-center gap-2 rounded-full border border-[#2563EB]/40 bg-[#2563EB]/20 px-3 py-1.5 text-[10px] font-semibold uppercase leading-snug tracking-wide text-blue-100 sm:px-4 sm:text-xs">
+                  <Shield className="h-3.5 w-3.5 shrink-0 text-[#60A5FA]" />
+                  <span className="line-clamp-2 sm:line-clamp-1">
+                    {slide.badge || "Trusted by 500+ healthcare facilities across East Africa"}
+                  </span>
                 </div>
 
-                <h1 className="mt-6 text-[2.5rem] font-bold leading-[1.08] tracking-tight text-white sm:text-5xl lg:text-[3.75rem] lg:leading-[1.05]">
+                <h1 className="mt-4 text-[1.75rem] font-bold leading-[1.12] tracking-tight text-white sm:mt-6 sm:text-4xl lg:text-[3.75rem] lg:leading-[1.05]">
                   {renderHeadline(slide.title)}
                 </h1>
 
+                {/* Mobile / tablet slide visual — always shown */}
+                <div className="relative mt-5 h-52 w-full sm:mt-6 sm:h-64 lg:hidden">
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={`mobile-${slide.id}`}
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      transition={{ duration: 0.4 }}
+                      className="h-full"
+                    >
+                      <HeroSlideVisual
+                        slide={slide}
+                        index={activeIndex}
+                        floatingCard={floatingCard}
+                        compact={Boolean(slide.image)}
+                      />
+                    </motion.div>
+                  </AnimatePresence>
+                </div>
+
                 {slide.subtitle && (
-                  <p className="mt-6 max-w-[600px] text-base leading-relaxed text-blue-100/80 sm:text-lg">
+                  <p className="mt-5 max-w-[600px] text-sm leading-relaxed text-blue-100/85 sm:mt-6 sm:text-base lg:text-lg">
                     {slide.subtitle}
                   </p>
                 )}
 
-                <div className="mt-8 flex flex-wrap items-center gap-4">
+                <div className="mt-6 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
                   <Link
                     href={slide.ctaLink || "/contact"}
-                    className="group inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#2563EB] to-[#3B82F6] px-7 py-3.5 text-sm font-semibold text-white shadow-lg shadow-blue-900/30 transition hover:shadow-xl hover:shadow-blue-900/40"
+                    className="group inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#2563EB] to-[#3B82F6] px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-blue-900/30 transition hover:shadow-xl hover:shadow-blue-900/40 sm:w-auto sm:justify-start sm:px-7"
                   >
                     {slide.ctaText || "Request a Demo"}
                     <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20 transition group-hover:bg-white/30">
@@ -223,7 +256,7 @@ export function HeroSection({ section }: HeroSectionProps) {
                   </Link>
                   <Link
                     href={slide.ctaLink2 || slide.videoUrl || "/contact"}
-                    className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-6 py-3.5 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/20"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/25 bg-white/10 px-6 py-3.5 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/20 sm:w-auto sm:justify-start"
                   >
                     <span className="flex h-7 w-7 items-center justify-center rounded-full border border-white/30">
                       <Play className="h-3.5 w-3.5 fill-white text-white" />
@@ -233,36 +266,23 @@ export function HeroSection({ section }: HeroSectionProps) {
                 </div>
 
                 {features.length > 0 && (
-                <div className="mt-8 hidden flex-wrap gap-x-6 gap-y-3 sm:flex">
-                  {features.map((f) => {
-                    const Icon = getLucideIcon(f.icon, Lock);
-                    return (
-                      <div key={f.label} className="flex items-center gap-2 text-xs text-blue-200/70">
-                        <Icon className="h-3.5 w-3.5 text-[#60A5FA]" />
-                        {f.label}
-                      </div>
-                    );
-                  })}
-                </div>
-                )}
-
-                {slide.image && (
-                  <div className="relative mt-8 h-56 w-full overflow-hidden rounded-2xl border border-white/20 shadow-xl lg:hidden">
-                    <Image
-                      src={slide.image}
-                      alt={slide.title}
-                      fill
-                      priority={activeIndex === 0}
-                      className="object-cover"
-                      sizes="100vw"
-                    />
+                  <div className="mt-6 hidden flex-wrap gap-x-6 gap-y-3 sm:flex">
+                    {features.map((f) => {
+                      const Icon = getLucideIcon(f.icon, Lock);
+                      return (
+                        <div key={f.label} className="flex items-center gap-2 text-xs text-blue-200/70">
+                          <Icon className="h-3.5 w-3.5 text-[#60A5FA]" />
+                          {f.label}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </motion.div>
             </AnimatePresence>
 
             {slides.length > 1 && (
-              <div className="mt-10 flex items-center gap-3" role="tablist" aria-label="Slide progress">
+              <div className="mt-8 flex items-center gap-3" role="tablist" aria-label="Slide progress">
                 {slides.map((s, i) => (
                   <button
                     key={s.id}
@@ -302,7 +322,7 @@ export function HeroSection({ section }: HeroSectionProps) {
         </div>
       </div>
 
-      <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white to-transparent" />
+      <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white to-transparent sm:h-32" />
     </section>
   );
 }
