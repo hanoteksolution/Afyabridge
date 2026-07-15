@@ -88,20 +88,26 @@ export function Header({
     );
 
   return (
-    <div className="relative z-[100]">
-      {/* Top bar scrolls away naturally — only the nav bar sticks */}
-      <TopBar settings={settings} />
+    <header
+      className={cn(
+        "sticky top-0 z-[100] w-full transition-shadow duration-300",
+        scrolled
+          ? "shadow-[0_4px_24px_rgba(10,42,139,0.1)]"
+          : "shadow-sm"
+      )}
+      onMouseLeave={() => setOpenMenu(null)}
+    >
+      {/* Contact + social — part of the same sticky header */}
+      <TopBar settings={settings} compact={scrolled} />
 
-      <header
-        className={cn(
-          "sticky top-0 border-b transition-[box-shadow,background-color,border-color] duration-300",
-          scrolled
-            ? "border-slate-200/90 bg-white/95 shadow-[0_4px_24px_rgba(10,42,139,0.08)] backdrop-blur-md supports-[backdrop-filter]:bg-white/90"
-            : "border-slate-200/80 bg-white shadow-none"
-        )}
-        onMouseLeave={() => setOpenMenu(null)}
-      >
-        <div className="mx-auto flex h-14 min-h-14 max-w-7xl items-center justify-between gap-3 px-4 sm:h-16 sm:gap-4 sm:px-6 lg:px-8">
+      {/* Main navigation — always visible when scrolled */}
+      <div className="border-b border-slate-200/80 bg-white">
+        <div
+          className={cn(
+            "mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 sm:gap-4 sm:px-6 lg:px-8",
+            scrolled ? "h-14 min-h-14" : "h-14 min-h-14 sm:h-16"
+          )}
+        >
           <Link href="/" className="min-w-0 shrink">
             <SiteLogo
               name={site.site_name}
@@ -211,7 +217,7 @@ export function Header({
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.2 }}
-              className="max-h-[calc(100dvh-3.5rem)] overflow-y-auto border-t border-slate-100 bg-white sm:max-h-[calc(100dvh-4rem)] lg:hidden"
+              className="max-h-[calc(100dvh-8rem)] overflow-y-auto border-t border-slate-100 bg-white lg:hidden"
             >
               <nav aria-label="Mobile navigation" className="p-4">
                 <ul className="flex list-none flex-col gap-0.5 p-0 m-0">
@@ -260,7 +266,7 @@ export function Header({
             </motion.div>
           )}
         </AnimatePresence>
-      </header>
-    </div>
+      </div>
+    </header>
   );
 }
