@@ -8,14 +8,20 @@
 
 services:
   app:
+    image: afyabridge-app:latest
     build:
       context: .
       dockerfile: Dockerfile
-      # BuildKit is used by deploy scripts; layer + mount caches speed code-only updates
       args:
         DATABASE_URL: ${DATABASE_URL}
         DIRECT_DATABASE_URL: ${DIRECT_DATABASE_URL}
         NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL}
+      # Reuse layers from the last image + persistent local BuildKit cache
+      cache_from:
+        - afyabridge-app:latest
+        - type=local,src=.buildcache
+      cache_to:
+        - type=local,dest=.buildcache,mode=max
     restart: unless-stopped
     env_file: .env
     environment:

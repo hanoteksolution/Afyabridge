@@ -185,6 +185,22 @@ make deploy-update
 
 This pulls git, rebuilds **only the `app` image** (keeps npm/`node_modules` and Next.js caches when possible), and restarts the app without rebuilding Caddy.
 
+**How incremental builds work**
+
+| Change | Typical build time |
+|--------|-------------------|
+| Docs / deploy scripts only | **No rebuild** — container restart only |
+| `src/` code only | Faster — reuses npm + Prisma layers + `.buildcache` Next.js cache |
+| `package-lock.json` | Slower — reinstalls dependencies |
+
+Persistent cache lives in `.buildcache/` on the server (not in git). **Do not** run `docker builder prune -af` before routine updates.
+
+Force a full rebuild if needed:
+
+```bash
+FORCE_REBUILD=1 bash scripts/deploy-droplet.sh
+```
+
 **Do not** run `docker builder prune -af` or `docker system prune -af` before routine updates — that deletes the cache and forces a full rebuild every time. Use those only when the droplet is critically low on disk.
 
 When a new version is released and you prefer the manual path:

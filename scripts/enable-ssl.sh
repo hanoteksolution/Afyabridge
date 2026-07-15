@@ -85,9 +85,10 @@ if ! grep -q '^AUTH_TRUST_HOST=' .env; then
   echo "AUTH_TRUST_HOST=true" >> .env
 fi
 
-echo "==> Rebuilding app (NEXT_PUBLIC_SITE_URL baked into client bundle)..."
+echo "==> Rebuilding app (reuses .buildcache when possible)..."
 export DOCKER_BUILDKIT=1
 export COMPOSE_DOCKER_CLI_BUILD=1
+mkdir -p "${ROOT}/.buildcache"
 docker compose build app
 
 echo "==> Restarting stack (Caddy will request Let's Encrypt certificates)..."

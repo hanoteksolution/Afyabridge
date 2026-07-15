@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, ChevronDown, Search, LayoutGrid } from "lucide-react";
 import { SiteLogo } from "@/components/website/site-logo";
@@ -13,9 +13,6 @@ import { NAV } from "@/content/site";
 import { parseSiteSettings } from "@/lib/site-settings";
 import { NavDropdown } from "@/components/website/nav-dropdown";
 import { NavDropdownMobile } from "@/components/website/nav-dropdown-mobile";
-
-const SCROLL_HIDE_AT = 80;
-const SCROLL_SHOW_AT = 12;
 
 const CHILD_DESC: Record<string, string> = {
   "For Clinics": "Fast onboarding, essential modules, affordable",
@@ -55,45 +52,13 @@ export function Header({
   }));
   const pathname = usePathname();
   const isHome = pathname === "/";
-  const [compact, setCompact] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
-  const [spacerHeight, setSpacerHeight] = useState(0);
-  const topBarRef = useRef<HTMLDivElement>(null);
-  const navRef = useRef<HTMLDivElement>(null);
-  const topBarHeightRef = useRef(0);
   const openItem = nav.find((item) => item.label === openMenu && hasDropdown(item));
 
-  const measureHeader = useCallback(() => {
-    if (topBarRef.current) {
-      topBarHeightRef.current = topBarRef.current.scrollHeight;
-    }
-    const navH = navRef.current?.offsetHeight ?? 0;
-    const topH = topBarHeightRef.current;
-    setSpacerHeight(compact ? navH : topH + navH);
-  }, [compact]);
-
   useEffect(() => {
-    measureHeader();
-    const ro = new ResizeObserver(measureHeader);
-    if (topBarRef.current) ro.observe(topBarRef.current);
-    if (navRef.current) ro.observe(navRef.current);
-    window.addEventListener("resize", measureHeader);
-    return () => {
-      ro.disconnect();
-      window.removeEventListener("resize", measureHeader);
-    };
-  }, [measureHeader]);
-
-  useEffect(() => {
-    const onScroll = () => {
-      const y = window.scrollY;
-      setCompact((prev) => {
-        if (!prev && y > SCROLL_HIDE_AT) return true;
-        if (prev && y < SCROLL_SHOW_AT) return false;
-        return prev;
-      });
-    };
+    const onScroll = () => setScrolled(window.scrollY > 8);
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
     return () => window.removeEventListener("scroll", onScroll);
@@ -123,42 +88,32 @@ export function Header({
     );
 
   return (
-    <>
-      <header className="fixed inset-x-0 top-0 z-[100]">
-        <div
-          ref={topBarRef}
-          className={cn(
-            "overflow-hidden transition-[max-height,opacity] duration-300 ease-out",
-            compact ? "max-h-0 opacity-0" : "max-h-24 opacity-100 sm:max-h-20"
-          )}
-          aria-hidden={compact}
-        >
-          <TopBar settings={settings} />
-        </div>
+    <div className="relative z-[100]">
+      {/* Top bar scrolls away naturally — only the nav bar sticks */}
+      <TopBar settings={settings} />
 
-        <div
-          ref={navRef}
-          onMouseLeave={() => setOpenMenu(null)}
-          className={cn(
-            "relative border-b border-slate-200/80 bg-white",
-            compact
-              ? "shadow-[0_8px_30px_rgba(10,42,139,0.1)]"
-              : "shadow-sm"
-          )}
-        >
+      <header
+        className={cn(
+          "sticky top-0 border-b transition-[box-shadow,background-color,border-color] duration-300",
+          scrolled
+            ? "border-slate-200/90 bg-white/95 shadow-[0_4px_24px_rgba(10,42,139,0.08)] backdrop-blur-md supports-[backdrop-filter]:bg-white/90"
+            : "border-slate-200/80 bg-white shadow-none"
+        )}
+        onMouseLeave={() => setOpenMenu(null)}
+      >
         <div className="mx-auto flex h-14 min-h-14 max-w-7xl items-center justify-between gap-3 px-4 sm:h-16 sm:gap-4 sm:px-6 lg:px-8">
           <Link href="/" className="min-w-0 shrink">
             <SiteLogo
               name={site.site_name}
               logoUrl={site.site_logo || undefined}
-              showTagline={!isHome}
+              showTagline={!isHome && !scrolled}
               tagline={site.site_tagline || "Bridging Technology & Care"}
               className="max-w-[140px] sm:max-w-none"
             />
           </Link>
 
           <nav className="hidden lg:block" aria-label="Main navigation">
-            <ul className="flex list-none items-center gap-1 p-0 m-0">
+            <ul className="flex list-none items-center gap-0.5 p-0 m-0">
               {nav.map((item) => (
                 <li
                   key={item.label}
@@ -182,7 +137,7 @@ export function Header({
                       {item.label}
                       <ChevronDown
                         className={cn(
-                          "h-3.5 w-3.5 transition-transform",
+                          "h-3.5 w-3.5 transition-transform duration-200",
                           openMenu === item.label && "rotate-180"
                         )}
                       />
@@ -197,18 +152,18 @@ export function Header({
             </ul>
           </nav>
 
-          <div className="hidden shrink-0 items-center gap-2.5 lg:flex">
+          <div className="hidden shrink-0 items-center gap-2 lg:flex">
             <button
               type="button"
               aria-label="Search"
-              className="flex h-10 w-10 items-center justify-center rounded-full text-[#001A41] transition hover:bg-slate-100"
+              className="flex h-9 w-9 items-center justify-center rounded-full text-[#001A41] transition hover:bg-slate-100"
             >
-              <Search className="h-5 w-5" />
+              <Search className="h-[18px] w-[18px]" />
             </button>
             {site.watch_demo_text && (
               <Link
                 href={site.watch_demo_link || "/contact"}
-                className="hidden shrink-0 whitespace-nowrap text-sm font-semibold text-[#001A41] transition hover:text-[#2563EB] lg:inline-flex"
+                className="hidden shrink-0 whitespace-nowrap text-sm font-semibold text-[#001A41] transition hover:text-[#2563EB] xl:inline-flex"
               >
                 {site.watch_demo_text}
               </Link>
@@ -221,9 +176,9 @@ export function Header({
             <button
               type="button"
               aria-label="Menu grid"
-              className="flex h-10 w-10 items-center justify-center rounded-lg text-[#001A41] transition hover:bg-slate-100"
+              className="flex h-9 w-9 items-center justify-center rounded-lg text-[#001A41] transition hover:bg-slate-100"
             >
-              <LayoutGrid className="h-5 w-5" />
+              <LayoutGrid className="h-[18px] w-[18px]" />
             </button>
           </div>
 
@@ -255,10 +210,11 @@ export function Header({
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.2 }}
               className="max-h-[calc(100dvh-3.5rem)] overflow-y-auto border-t border-slate-100 bg-white sm:max-h-[calc(100dvh-4rem)] lg:hidden"
             >
               <nav aria-label="Mobile navigation" className="p-4">
-                <ul className="flex list-none flex-col gap-1 p-0 m-0">
+                <ul className="flex list-none flex-col gap-0.5 p-0 m-0">
                   {nav.map((item) => (
                     <li key={item.label}>
                       {hasDropdown(item) ? (
@@ -304,11 +260,7 @@ export function Header({
             </motion.div>
           )}
         </AnimatePresence>
-        </div>
       </header>
-
-      {/* Reserve space so content is not hidden under the fixed header */}
-      <div aria-hidden style={{ height: spacerHeight }} />
-    </>
+    </div>
   );
 }

@@ -2,6 +2,7 @@ node_modules
 .next
 .git
 .gitignore
+.buildcache
 .env
 .env.*
 !.env.example
@@ -17,3 +18,7 @@ coverage
 scripts/branding_text
 agent-transcripts
 Makefile
+deploy
+docker-compose*.yml
+Dockerfile*
+!Dockerfile

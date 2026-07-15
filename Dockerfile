@@ -1,4 +1,4 @@
-# Production image — optimized for incremental rebuilds (BuildKit layer + mount caches).
+# Production image — incremental rebuilds via BuildKit layer + persistent cache mounts.
 # Slim runner: Next.js standalone only (no second npm install).
 FROM node:20-alpine AS base
 RUN apk add --no-cache libc6-compat openssl
@@ -7,21 +7,24 @@ WORKDIR /app
 # --- dependencies (cached unless package-lock.json changes) ---
 FROM base AS deps
 COPY package.json package-lock.json ./
-RUN --mount=type=cache,target=/root/.npm \
+RUN --mount=type=cache,target=/root/.npm,id=afya-npm \
   npm install --no-audit --no-fund --ignore-scripts
 
 # --- build ---
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY package.json package-lock.json ./
-# Prisma generate only re-runs when schema / config change
 COPY prisma ./prisma
 COPY prisma.config.ts ./
-RUN npx prisma generate
+RUN --mount=type=cache,target=/root/.cache/prisma,id=afya-prisma \
+  npx prisma generate
 
-COPY . .
+# Config first, then app source (smaller context; clearer layer boundaries)
+COPY next.config.ts tsconfig.json postcss.config.mjs next-env.d.ts ./
+COPY public ./public
+COPY src ./src
+COPY scripts/docker-entrypoint.mjs scripts/docker-start.sh ./scripts/
 
-# Build-time env after source copy so URL-only changes don't redo npm/prisma layers
 ARG DATABASE_URL
 ARG DIRECT_DATABASE_URL
 ARG NEXT_PUBLIC_SITE_URL
@@ -32,8 +35,8 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV SKIP_TYPESCRIPT_CHECK=1
 ENV NODE_OPTIONS=--max-old-space-size=1536
 
-# Reuse Next.js compile cache across builds (code-only updates stay much faster)
-RUN --mount=type=cache,target=/app/.next/cache \
+# Persistent Next.js compile cache (speeds code-only updates on the droplet)
+RUN --mount=type=cache,target=/app/.next/cache,id=afya-next-cache \
   npx next build
 
 # --- runtime ---
