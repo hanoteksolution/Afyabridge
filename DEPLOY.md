@@ -193,7 +193,14 @@ This pulls git, rebuilds **only the `app` image** (keeps npm/`node_modules` and 
 | `src/` code only | Faster — reuses npm + Prisma layers + `.buildcache` Next.js cache |
 | `package-lock.json` | Slower — reinstalls dependencies |
 
-Persistent cache lives in `.buildcache/` on the server (not in git). **Do not** run `docker builder prune -af` before routine updates.
+Persistent cache uses Docker layer cache and in-build mounts (npm / Prisma / Next). **Do not** enable `.buildcache` export on small droplets — it can fill the disk.
+
+If deploy fails with `no space left on device`:
+
+```bash
+bash scripts/free-disk.sh
+bash scripts/deploy-droplet.sh
+```
 
 Force a full rebuild if needed:
 
@@ -294,6 +301,7 @@ docker compose down -v
 | Symptom | Recommended action |
 |---------|-------------------|
 | Site does not load | Run `docker compose ps` and confirm all services are `running` |
+| Build fails: no space left on device | Run `bash scripts/free-disk.sh`, then `bash scripts/deploy-droplet.sh` |
 | SSL certificate error | Run `bash scripts/check-ssl.sh`. Ensure `@` and `www` A records point to the droplet IP (not old Squarespace IPs). Open ports 80/443. |
 | 502 Bad Gateway | Run `docker compose logs app` and wait for the application to finish starting |
 | Database connection errors | Verify managed DB host/user/password/SSL settings; then run `docker compose restart app` |

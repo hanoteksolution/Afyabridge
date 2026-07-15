@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Fast production update: pull + rebuild only what changed (persistent BuildKit cache).
+# Fast production update: pull + rebuild only what changed.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -13,8 +13,12 @@ fi
 export DOCKER_BUILDKIT=1
 export COMPOSE_DOCKER_CLI_BUILD=1
 
-CACHE_DIR="${ROOT}/.buildcache"
-mkdir -p "$CACHE_DIR"
+# Warn / clean when disk is tight (small droplets ~8GB)
+USED_PCT="$(df / | tail -1 | awk '{print $5}' | tr -d '%')"
+if [[ "$USED_PCT" -ge 85 ]]; then
+  echo "WARNING: Disk ${USED_PCT}% full — running safe cleanup..."
+  bash scripts/free-disk.sh
+fi
 
 echo "==> Pulling latest code..."
 OLD_HEAD="$(git rev-parse HEAD)"
@@ -33,20 +37,19 @@ if [[ "${FORCE_REBUILD:-}" != "1" && "$OLD_HEAD" != "$NEW_HEAD" ]]; then
   fi
 fi
 
-echo "==> Building app (reuses npm, Prisma, and Next.js caches when possible)..."
-echo "    Cache directory: ${CACHE_DIR}"
+echo "==> Building app (Docker layer cache + in-build npm/Next caches)..."
 START=$(date +%s)
 
-# cache_from: previous image + local BuildKit cache (survives across deploys)
-docker compose build \
-  --build-arg BUILDKIT_INLINE_CACHE=1 \
-  app
+docker compose build app
 
 ELAPSED=$(( $(date +%s) - START ))
 echo "==> Build finished in ${ELAPSED}s"
 
 echo "==> Restarting app (Caddy left running)..."
 docker compose up -d --no-deps app
+
+# Light cleanup after build — avoid filling small disks
+docker image prune -f >/dev/null 2>&1 || true
 
 echo "==> Waiting for health check..."
 sleep 8

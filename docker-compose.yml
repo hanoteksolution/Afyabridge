@@ -16,11 +16,7 @@ services:
         DATABASE_URL: ${DATABASE_URL}
         DIRECT_DATABASE_URL: ${DIRECT_DATABASE_URL}
         NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL}
-      # Persistent local BuildKit cache (survives across deploys)
-      cache_from:
-        - type=local,src=.buildcache
-      cache_to:
-        - type=local,dest=.buildcache,mode=max
+      # Layer + mount caches only (no .buildcache export — saves disk on small droplets)
     restart: unless-stopped
     env_file: .env
     environment:
