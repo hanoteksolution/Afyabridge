@@ -20,7 +20,9 @@ RUN --mount=type=cache,target=/root/.cache/prisma,id=afya-prisma \
   npx prisma generate
 
 # Config first, then app source (smaller context; clearer layer boundaries)
-COPY next.config.ts tsconfig.json postcss.config.mjs next-env.d.ts ./
+COPY next.config.ts tsconfig.json postcss.config.mjs ./
+# next-env.d.ts is gitignored; Next expects it for types — create before build
+RUN printf '/// <reference types="next" />\n/// <reference types="next/image-types/global" />\n' > next-env.d.ts
 COPY public ./public
 COPY src ./src
 COPY scripts/docker-entrypoint.mjs scripts/docker-start.sh ./scripts/

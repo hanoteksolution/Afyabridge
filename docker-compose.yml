@@ -16,9 +16,8 @@ services:
         DATABASE_URL: ${DATABASE_URL}
         DIRECT_DATABASE_URL: ${DIRECT_DATABASE_URL}
         NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL}
-      # Reuse layers from the last image + persistent local BuildKit cache
+      # Persistent local BuildKit cache (survives across deploys)
       cache_from:
-        - afyabridge-app:latest
         - type=local,src=.buildcache
       cache_to:
         - type=local,dest=.buildcache,mode=max
