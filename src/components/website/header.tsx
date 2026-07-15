@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, ChevronDown, Search, LayoutGrid } from "lucide-react";
 import { SiteLogo } from "@/components/website/site-logo";
@@ -13,6 +13,9 @@ import { NAV } from "@/content/site";
 import { parseSiteSettings } from "@/lib/site-settings";
 import { NavDropdown } from "@/components/website/nav-dropdown";
 import { NavDropdownMobile } from "@/components/website/nav-dropdown-mobile";
+
+const SCROLL_HIDE_AT = 80;
+const SCROLL_SHOW_AT = 12;
 
 const CHILD_DESC: Record<string, string> = {
   "For Clinics": "Fast onboarding, essential modules, affordable",
@@ -52,13 +55,45 @@ export function Header({
   }));
   const pathname = usePathname();
   const isHome = pathname === "/";
-  const [isScrolled, setIsScrolled] = useState(false);
+  const [compact, setCompact] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const [spacerHeight, setSpacerHeight] = useState(0);
+  const topBarRef = useRef<HTMLDivElement>(null);
+  const navRef = useRef<HTMLDivElement>(null);
+  const topBarHeightRef = useRef(0);
   const openItem = nav.find((item) => item.label === openMenu && hasDropdown(item));
 
+  const measureHeader = useCallback(() => {
+    if (topBarRef.current) {
+      topBarHeightRef.current = topBarRef.current.scrollHeight;
+    }
+    const navH = navRef.current?.offsetHeight ?? 0;
+    const topH = topBarHeightRef.current;
+    setSpacerHeight(compact ? navH : topH + navH);
+  }, [compact]);
+
   useEffect(() => {
-    const onScroll = () => setIsScrolled(window.scrollY > 20);
+    measureHeader();
+    const ro = new ResizeObserver(measureHeader);
+    if (topBarRef.current) ro.observe(topBarRef.current);
+    if (navRef.current) ro.observe(navRef.current);
+    window.addEventListener("resize", measureHeader);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", measureHeader);
+    };
+  }, [measureHeader]);
+
+  useEffect(() => {
+    const onScroll = () => {
+      const y = window.scrollY;
+      setCompact((prev) => {
+        if (!prev && y > SCROLL_HIDE_AT) return true;
+        if (prev && y < SCROLL_SHOW_AT) return false;
+        return prev;
+      });
+    };
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
     return () => window.removeEventListener("scroll", onScroll);
@@ -88,25 +123,29 @@ export function Header({
     );
 
   return (
-    <header className="sticky top-0 z-[100] w-full">
-      <div
-        className={cn(
-          "overflow-hidden transition-all duration-300",
-          isScrolled ? "max-h-0 opacity-0" : "max-h-24 opacity-100 sm:max-h-20"
-        )}
-      >
-        <TopBar settings={settings} />
-      </div>
+    <>
+      <header className="fixed inset-x-0 top-0 z-[100]">
+        <div
+          ref={topBarRef}
+          className={cn(
+            "overflow-hidden transition-[max-height,opacity] duration-300 ease-out",
+            compact ? "max-h-0 opacity-0" : "max-h-24 opacity-100 sm:max-h-20"
+          )}
+          aria-hidden={compact}
+        >
+          <TopBar settings={settings} />
+        </div>
 
-      <div
-        onMouseLeave={() => setOpenMenu(null)}
-        className={cn(
-          "relative border-b border-slate-200/80 bg-white transition-all duration-300",
-          isScrolled
-            ? "shadow-[0_8px_30px_rgba(10,42,139,0.1)]"
-            : "shadow-sm"
-        )}
-      >
+        <div
+          ref={navRef}
+          onMouseLeave={() => setOpenMenu(null)}
+          className={cn(
+            "relative border-b border-slate-200/80 bg-white",
+            compact
+              ? "shadow-[0_8px_30px_rgba(10,42,139,0.1)]"
+              : "shadow-sm"
+          )}
+        >
         <div className="mx-auto flex h-14 min-h-14 max-w-7xl items-center justify-between gap-3 px-4 sm:h-16 sm:gap-4 sm:px-6 lg:px-8">
           <Link href="/" className="min-w-0 shrink">
             <SiteLogo
@@ -265,7 +304,11 @@ export function Header({
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
-    </header>
+        </div>
+      </header>
+
+      {/* Reserve space so content is not hidden under the fixed header */}
+      <div aria-hidden style={{ height: spacerHeight }} />
+    </>
   );
 }
